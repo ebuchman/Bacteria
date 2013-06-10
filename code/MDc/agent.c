@@ -27,6 +27,7 @@ struct Forces * compute_forces(struct Agent ** agents, double dt)
     struct Forces * forces = malloc(sizeof(struct Forces)); //to return F_r and Tau
 
     forces->F_r = malloc(NUM_BACTERIA*sizeof(double));
+    forces->F_t = malloc(NUM_BACTERIA*sizeof(double));
     forces->Tau = malloc(NUM_BACTERIA*sizeof(double));
 
     int i, j, a, b; // iterators
@@ -59,6 +60,10 @@ struct Forces * compute_forces(struct Agent ** agents, double dt)
                         
                         forces->F_r[i] += f_x*cos(agents[i]->th) + f_y*sin(agents[i]->th);
                         forces->F_r[j] += -f_x*cos(agents[j]->th) + -f_y*sin(agents[j]->th);
+                        
+                        forces->F_t[i] += -f_x*sin(agents[i]->th) + f_y*cos(agents[i]->th);
+                        forces->F_t[j] += f_x*sin(agents[j]->th) - f_y*cos(agents[j]->th);
+                        
                                                 
                         r_cm_a = pow(pow(agents[i]->balls[a*2] - agents[i]->cm_x, 2) + pow(agents[i]->balls[a*2+1] - agents[i]->cm_y, 2), 0.5);
                         r_cm_b = pow(pow(agents[j]->balls[b*2] - agents[j]->cm_x, 2) + pow(agents[j]->balls[b*2+1] - agents[j]->cm_y, 2), 0.5);
@@ -82,11 +87,14 @@ double * compute_rod(double cm_x, double cm_y, double r, double th, int N)
     
     int i;
     double x, y;
+    double end = -(N-1); // number of radi from cm the rod extends
+    
     for (i=0; i < N; i++)
     {
         //pbc
-        x = fabs(fmod((cm_x - (N - abs(N%2 - 1) - 2*i)*r*cos(th)), SCREEN_W));
-        y = fabs(fmod((cm_y - (N - abs(N%2 - 1) - 2*i)*r*sin(th)), SCREEN_W));
+        
+        x = fabs(fmod((cm_x + (end + 2*i)*r*cos(th)), SCREEN_W));
+        y = fabs(fmod((cm_y + (end + 2*i)*r*sin(th)), SCREEN_W));
         balls[i*2] = x;
         balls[i*2+1] = y;
     }
@@ -119,13 +127,15 @@ struct Agent * make_agent(int N, double x, double y, double theta)
     ag->cm_y = y;
     ag->th = theta;
     ag->omega = 0;
-    ag->v = 0;
-
+    ag->v_r = 0;
+    ag->v_t = 0;
+    
     ag->F_self = 1.;
     
     ag->ball_r = BALL_R; 
     
-    ag->last_F = 0;
+    ag->last_F_r = 0;
+    ag->last_F_t = 0;
     ag->last_tau = 0;
     
     ag->t = 0;
@@ -160,23 +170,26 @@ struct Agent ** make_colony()
 }
 
 //step
-void step(struct Agent * agent, double F, double tau, double dt)
+void step(struct Agent * agent, double F_r, double F_t, double tau, double dt)
 {
     
-    double dv, domega, dx, dy, dth;
+    double dv_r, dv_t, domega, dx, dy, dth;
     double * balls = malloc(BACTERIA_LENGTH*2*sizeof(double));
     
-    F = F + agent->F_self - GAMMA*agent->v;
+    F_r = F_r + agent->F_self - GAMMA*agent->v_r;
+    F_t = F_t - GAMMA*agent->v_t;
     tau = tau + (rand()/(double)RAND_MAX - 0.5)*2*2*PI - GAMMA*agent->omega;
 
-    dv = 0.5*(F + agent->last_F)*dt;
+    dv_r = 0.5*(F_r + agent->last_F_r)*dt;
+    dv_t = 0.5*(F_t + agent->last_F_t)*dt;
     domega = 0.5*(tau + agent->last_tau)*dt;
 
-    agent->v += dv;
+    agent->v_r += dv_r;
+    agent->v_t += dv_t;
     agent->omega += domega;
     
-    dx = agent->v*cos(agent->th)*dt + 0.5*F*cos(agent->th)*pow(dt, 2);
-    dy = agent->v*sin(agent->th)*dt + 0.5*F*sin(agent->th)*pow(dt, 2);
+    dx = (agent->v_r*cos(agent->th) - agent->v_t*sin(agent->th))*dt + 0.5*(F_r*cos(agent->th) - F_t*sin(agent->th))*pow(dt, 2);
+    dy = (agent->v_r*sin(agent->th) + agent->v_t*cos(agent->th))*dt + 0.5*(F_r*sin(agent->th) + F_t*cos(agent->th))*pow(dt, 2);
 
     dth = agent->omega*dt + 0.5*tau*pow(dt, 2);
     
@@ -188,7 +201,8 @@ void step(struct Agent * agent, double F, double tau, double dt)
     balls =  compute_rod(agent->cm_x, agent->cm_y, agent->ball_r, agent->th, agent->N);
     agent->balls = balls; //compute_rod(agent->cm_x, agent->cm_y, agent->ball_r, agent->th, agent->N);
     
-    agent->last_F = F;
+    agent->last_F_r = F_r;
+    agent->last_F_t = F_t;
     agent->last_tau = tau;
     
     
@@ -220,7 +234,7 @@ int main()
                     
         for (i = 0; i < NUM_BACTERIA; i++)
         {
-            step(agents[i], forces->F_r[i], forces->Tau[i], dt);
+            step(agents[i], forces->F_r[i], forces->F_t[i], forces->Tau[i], dt);
             cm_x_traj[time*NUM_BACTERIA + i] = agents[i]->cm_x;
             cm_y_traj[time*NUM_BACTERIA + i] = agents[i]->cm_y;
             th_traj[time*NUM_BACTERIA + i] = agents[i]->th;
