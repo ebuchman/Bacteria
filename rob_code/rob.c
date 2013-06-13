@@ -488,7 +488,7 @@ void multiple_out(struct Parameters p, struct Agent *agents, int N)
 
   FILE *fp;
 
-  sprintf(ind,"%d\n", N);
+  sprintf(ind,"%d", N);
 
 
   strcpy(base,"gnudat/time");
@@ -528,9 +528,9 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
   while (t <= p.RUN_TIME)
     {
+      printf("%d\n", t);
       /* Compute forces */
       compute_forces(p, forces, agents, p.DT);
-
       /* Evolve positions */
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
@@ -540,13 +540,14 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
       if (t%p.SKIP == 0) 
       {
-          data_out(p, agents);
-          multiple_out(p, agents, count);
+        
+        data_out(p, agents);
+        multiple_out(p, agents, count);
 
-          count++;
+        count++;
       }
 
-      if (t%(p.RUN_TIME/100) == 0) printf("# run time = %d\n", t);
+      //if (t%(p.RUN_TIME/100) == 0) printf("# run time = %d\n", t);
 
       /* Sanity check */
 
