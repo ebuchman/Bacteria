@@ -14,6 +14,13 @@ struct Parameters
   double DT;
 };
 
+struct Pillus
+{
+  //initial length, length, force, angle, motor power
+  double L0, L, F, th, P;
+
+};
+
 struct Agent
 {
   int N;
@@ -26,7 +33,12 @@ struct Agent
   double v0, F_self;
   double vx, vy;
   double last_Fx, last_Fy, last_tau;
+    
+  int Npil;
+  double pil_span, pil_len_mean, pil_len_std;
+  struct Pillus * pillae;
   
+    
   int t;
 };
 
