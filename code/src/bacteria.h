@@ -4,6 +4,15 @@ struct Parameters
   int SKIP;
   int NUM_BACTERIA;
   int BACTERIA_LENGTH;
+    
+  int NPIL;
+  double  PIL_SPAN;
+  double PIL_LEN_MEAN;
+  double PIL_LEN_STD;
+
+  double K_STIFFNESS;
+  double F_FRICTION;
+
   int UNIFORM;
   
   double SCREEN_W;
@@ -36,7 +45,7 @@ struct Agent
     
   int Npil;
   double pil_span, pil_len_mean, pil_len_std;
-  struct Pillus * pillae;
+  struct Pillus *pillae;
   
     
   int t;
@@ -51,8 +60,15 @@ struct Forces
   double *Tau;
 };
 
+struct Parameters load_params(struct Parameters p);
+
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
 	       struct Agent *agents);
+
+
+void extend_pillus(struct Pillus * pi, int i);
+
+void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p);
 
 void compute_forces(struct Parameters p, struct Forces *forces, 
 		    struct Agent *agents, double dt);
