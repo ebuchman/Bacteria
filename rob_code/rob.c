@@ -5,6 +5,7 @@
 #include <strings.h>
 #include "rob.h"
 
+
 int main()
 {
   int i;
@@ -17,34 +18,10 @@ int main()
 
   struct Parameters p;
 
-  char dummy[100];
- 
-  FILE *fp;
-
   idum = (long *)malloc(sizeof(long));
   *idum = -(long) time(NULL);
 
-  /* Read in parameters from input file */
-
-  fp = fopen("input","r");
-
-  fscanf(fp,"%s", dummy);
-
-  fscanf(fp, "%s %d", dummy, &(p.RUN_TIME) );
-  fscanf(fp, "%s %d", dummy, &(p.SKIP) );
-  fscanf(fp, "%s %d", dummy, &(p.NUM_BACTERIA) );
-  fscanf(fp, "%s %d", dummy, &(p.BACTERIA_LENGTH) );
-
-  fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
-  
-  fscanf(fp, "%s %lf", dummy, &(p.SCREEN_W) );
-  fscanf(fp, "%s %lf", dummy, &(p.BALL_R) );
-  fscanf(fp, "%s %lf", dummy, &(p.GAMMA) );
-  fscanf(fp, "%s %lf", dummy, &(p.E) );
-
-  fscanf(fp, "%s %lf", dummy, &(p.DT) );
-
-  fclose(fp);
+  p = load_params(p);
 
   /* Allocate memory */
 
@@ -60,7 +37,7 @@ int main()
       forces.Fy[i] = 0.0;
       forces.Tau[i] = 0.0;
     }
-  
+
   /* Initialize agents */
   
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
@@ -68,7 +45,7 @@ int main()
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       agents[i].balls = (double *)malloc(p.BACTERIA_LENGTH*2*sizeof(double));
-    }
+    }    
 
   /* Initialize colony variables */
   
@@ -76,11 +53,10 @@ int main()
     make_colony(p, agents, idum); 
   else
     make_colony_uniform(p, agents);
-
+    
   printf("# %d\t%lf\t%lf\n", agents[0].N, agents[0].cm_x, agents[0].cm_y);
 
   /*** RUN SIMULATION ***/
-
   evolution(p, idum, &forces, agents);
 
   printf("# toodles!\n");
@@ -95,6 +71,39 @@ int main()
 
 /*****************************************************************************/
 
+struct Parameters load_params(struct Parameters p)
+{
+    FILE *fp;
+    
+    char dummy[100];
+    
+    /* Read in parameters from input file */
+    
+    fp = fopen("input","r");
+    
+    fscanf(fp,"%s", dummy);
+    
+    fscanf(fp, "%s %d", dummy, &(p.RUN_TIME) );
+    fscanf(fp, "%s %d", dummy, &(p.SKIP) );
+    fscanf(fp, "%s %d", dummy, &(p.NUM_BACTERIA) );
+    fscanf(fp, "%s %d", dummy, &(p.BACTERIA_LENGTH) );
+    
+    fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
+    
+    fscanf(fp, "%s %lf", dummy, &(p.SCREEN_W) );
+    fscanf(fp, "%s %lf", dummy, &(p.BALL_R) );
+    fscanf(fp, "%s %lf", dummy, &(p.GAMMA) );
+    fscanf(fp, "%s %lf", dummy, &(p.E) );
+    
+    fscanf(fp, "%s %lf", dummy, &(p.DT) );
+    
+    fclose(fp);
+    
+    return p;
+    
+}
+
+/****************************************************************/
 
 void make_colony(struct Parameters p, struct Agent *agents, long *idum)
 { 
@@ -282,7 +291,7 @@ void compute_forces(struct Parameters p, struct Forces *forces,
   double r_cm_a, r_cm_b; //cm displacement's of balls
 
         
-  /* zero the forces */
+  /* zero the forces */ // should this happen in step so it doesn't incur more looping, or is it irrelevant? 
     
   for (i = 0; i < p.NUM_BACTERIA; i++)
     {
@@ -479,7 +488,8 @@ void multiple_out(struct Parameters p, struct Agent *agents, int N)
 
   FILE *fp;
 
-  sprintf(ind,"%d", N);
+  sprintf(ind,"%d\n", N);
+
 
   strcpy(base,"gnudat/time");
 
@@ -489,9 +499,11 @@ void multiple_out(struct Parameters p, struct Agent *agents, int N)
 
   for (i = 0; i < p.NUM_BACTERIA; i++)
     {
-      for (j= 0; j < p.BACTERIA_LENGTH; j++)
+        for (j= 0; j < p.BACTERIA_LENGTH; j++)
 	{
-	  fprintf(fp, "%lf\t%lf\n", agents[i].balls[2*j], agents[i].balls[2*j+1]);
+        fprintf(fp, "%f\t%f\n", agents[i].balls[2*j], agents[i].balls[2*j+1]);
+        //printf("%f\t%f\n", agents[i].balls[2*j], agents[i].balls[2*j+1]);
+
 	}
     }
 
@@ -511,31 +523,28 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
   int i, count, t = 0;
 
   output_clean(p);
-
+    
   count = 0;
 
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
-
       compute_forces(p, forces, agents, p.DT);
 
       /* Evolve positions */
-
       for (i = 0; i < p.NUM_BACTERIA; i++)
-        {
-	  step(p, idum, i, agents, forces, p.DT);
-	}
-
+      {
+        step(p, idum, i, agents, forces, p.DT);
+      }
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
-	{
-	  // data_out(p, agents);
-	  multiple_out(p, agents, count);
+      {
+          data_out(p, agents);
+          multiple_out(p, agents, count);
 
-	  count++;
-	}
+          count++;
+      }
 
       if (t%(p.RUN_TIME/100) == 0) printf("# run time = %d\n", t);
 

@@ -39,6 +39,7 @@ struct Forces
   double *Tau;
 };
 
+struct Parameters load_params(struct Parameters p);
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
 	       struct Agent *agents);
 
