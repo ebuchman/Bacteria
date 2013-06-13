@@ -1,8 +1,8 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+
 
 #define IA 16807
 #define IM 2147483647
@@ -49,7 +49,7 @@ float ran1(long *idum)
   j = iy/NDIV;
   iy = iv[j];
   iv[j] = *idum;
-  
+   
   if ( (temp = AM*iy) > RNMX) return RNMX;
   else return temp;
 }
