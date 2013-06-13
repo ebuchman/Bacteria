@@ -60,7 +60,7 @@ void compute_forces(struct Parameters p, struct Forces *forces,
   double r_cm_a, r_cm_b; //cm displacement's of balls
   
   
-  /* zero the forces */ // should this happen in step so it doesn't incur more looping, or is it irrelevant?
+  /* zero the forces */
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
@@ -119,8 +119,6 @@ void compute_forces(struct Parameters p, struct Forces *forces,
           
         }
       }
-      
-	  // printf("%d\t%lf\n", i, forces->Fx[i]);  
     }
   }
   

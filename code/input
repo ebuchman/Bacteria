@@ -1,20 +1,20 @@
 Parameters_for_the_program_agent.c
 
-RUN_TIME=		200
+RUN_TIME=		2000
 SKIP=			10
 
 NUM_BACTERIA= 		20
 BACTERIA_LENGTH=	4
 
 NPIL=           8
-PIL_SPAN=       3.141592653589793/3
+PIL_SPAN=       1.0471975511965976
 PIL_LEN_MEAN=   2
 PIL_LEN_STD=    0.1
 
 K_STIFFNESS=    2
 F_FRICTION=     5
 
-UNIFORM=		1	
+UNIFORM=		0	
 
 SCREEN_W= 		45
 BALL_R= 		0.2

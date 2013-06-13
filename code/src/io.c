@@ -32,8 +32,6 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.K_STIFFNESS) );
   fscanf(fp, "%s %lf", dummy, &(p.F_FRICTION) );
   
-  
-  
   fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
   
   fscanf(fp, "%s %lf", dummy, &(p.SCREEN_W) );
@@ -44,7 +42,7 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.DT) );
   
   fclose(fp);
-  
+    
   return p;
   
 }
@@ -123,7 +121,7 @@ void multiple_out(struct Parameters p, struct Agent *agents, int N)
   
   FILE *fp;
   
-  sprintf(ind,"%d\n", N);
+  sprintf(ind,"%d", N);
   
   
   strcpy(base,"gnudat/time");

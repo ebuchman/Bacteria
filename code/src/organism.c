@@ -160,9 +160,12 @@ void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
 /*****************************************************************************/
 
 
-void extend_pillus(struct Pillus * pil, int i)
+void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum)
 {
-  // pull a random number for pillus.L0
-  // pull a random number for pillus.th
+  //uniform centred at mean with length 2*std
+  pil[i].L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
+
+  //uniform around 0 with length pil_span
+  pil[i].th = ran1(idum)*2*ag.pil_span - ag.pil_span;
   
 }

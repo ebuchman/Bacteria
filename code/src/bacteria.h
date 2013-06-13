@@ -66,7 +66,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 	       struct Agent *agents);
 
 
-void extend_pillus(struct Pillus * pi, int i);
+void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum);
 
 void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p);
 

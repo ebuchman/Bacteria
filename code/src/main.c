@@ -49,6 +49,7 @@ int main()
 
   /* Initialize colony variables */
   
+  
   if (p.UNIFORM == 0) 
     make_colony(p, agents, idum); 
   else
@@ -89,8 +90,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   {
     if (agents[i].pillae[j].L <= 0)
     {
-      //draw random number
-      //extend pillus (agent[i].pillae, j)
+      if (ran1(idum) > 0.8)  extend_pillus(agents[i].pillae, j, agents[i], idum);
     }
   }
   compute_pilli_forces(fint, agents, i, p);
@@ -111,6 +111,12 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   
   agents[i].vx += dvx; 
   agents[i].vy += dvy;
+  
+  if (agents[i].vx * cos(agents[i].th) < 0)
+  {
+    //reverse direction if there was a bounce back
+    agents[i].th -= M_PI;
+  }
 
   agents[i].omega += domega;
 
