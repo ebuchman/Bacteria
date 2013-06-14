@@ -9,6 +9,7 @@ struct Parameters
   double  PIL_SPAN;
   double PIL_LEN_MEAN;
   double PIL_LEN_STD;
+  double MOTOR_POWER;
 
   double K_STIFFNESS;
   double F_FRICTION;
@@ -39,7 +40,6 @@ struct Agent
   double th, omega;
   double *balls;
   
-  double v0, F_self;
   double vx, vy;
   double last_Fx, last_Fy, last_tau;
     

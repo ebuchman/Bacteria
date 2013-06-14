@@ -28,6 +28,7 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.PIL_SPAN) );
   fscanf(fp, "%s %lf", dummy, &(p.PIL_LEN_MEAN) );
   fscanf(fp, "%s %lf", dummy, &(p.PIL_LEN_STD) );
+  fscanf(fp, "%s %lf", dummy, &(p.MOTOR_POWER) );
   
   fscanf(fp, "%s %lf", dummy, &(p.K_STIFFNESS) );
   fscanf(fp, "%s %lf", dummy, &(p.F_FRICTION) );
@@ -42,7 +43,7 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.DT) );
   
   fclose(fp);
-    
+  
   return p;
   
 }

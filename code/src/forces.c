@@ -9,38 +9,47 @@
 
 void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p)
 {
+
   double f_x=0; double f_y=0; double tau=0;
+  double f_r=0; double f_t=0;
   double x;
   int j;
-  struct Pillus pil;
-  
+  struct Pillus * pil;
   
   for (j = 0; j < agents[i].Npil; j++)
   {
-    pil = agents[i].pillae[j];
-    x = pil.L0 - pil.L;
-    
+    pil = &agents[i].pillae[j];
+
+    x = pil->L0 - pil->L;
     if (x >= 0)
     {
-      pil.F = p.K_STIFFNESS*x;
-      if (0 < pil.F < p.F_FRICTION)
-        pil.L -= (pil.P/pil.F)*p.DT;
+      pil->F = p.K_STIFFNESS*x;
+      if (pil->F > 0 && pil->F < p.F_FRICTION) //common!!
+      {
+        pil->L -= (pil->P/pil->F)*p.DT;
+                
+      }
       else
       {
-        pil.F = p.F_FRICTION;
-        f_x += pil.F*cos(pil.th)*cos(agents[i].th);
-        f_y += pil.F*sin(pil.th)*sin(agents[i].th);
-        if (pil.F != 0)
-          pil.L -= (pil.P/pil.F)*p.DT;
+        pil->F = p.F_FRICTION;
+
+        f_r += pil->F*cos(pil->th);
+        f_t += pil->F*sin(pil->th);
+        
+        if (pil->F != 0.)
+          pil->L -= (pil->P/pil->F)*p.DT;
+
       }
-      
-      tau += pil.L*sin(pil.th)*pil.F;
+      tau += pil->L*sin(pil->th)*pil->F;
+      //printf("%f, %f, %f\n", f_x, f_y, tau);
     }
   }
-  forces->Fx[i] += f_x;
-  forces->Fy[i] += f_y;
+  forces->Fx[i] += f_r*cos(agents[i].th) + f_t*sin(agents[i].th);
+  forces->Fy[i] += f_r*sin(agents[i].th) - f_t*cos(agents[i].th) ;
   forces->Tau[i] += tau;
   
+
+    
 }
 
 /*****************************************************************************/

@@ -88,22 +88,26 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 
   for (j = 0; j < agents[i].Npil; j++)
   {
+
     if (agents[i].pillae[j].L <= 0)
     {
-      if (ran1(idum) > 0.8)  extend_pillus(agents[i].pillae, j, agents[i], idum);
+      if (ran1(idum) > 0.9)  extend_pillus(agents[i].pillae, j, agents[i], idum);
     }
+
   }
+  //printf("%f\n", agents[i].pillae[0].L);
+  
   compute_pilli_forces(fint, agents, i, p);
-    
+  //exit(0);
   /* Net force */
 
-  fx = fint->Fx[i] +  agents[i].F_self*cos(agents[i].th) - p.GAMMA*agents[i].vx;
-  fy = fint->Fy[i] +  agents[i].F_self*sin(agents[i].th) - p.GAMMA*agents[i].vy;
+  fx = fint->Fx[i] - p.GAMMA*agents[i].vx;
+  fy = fint->Fy[i] - p.GAMMA*agents[i].vy;
   
   /* Net torque */
 
-  tau = fint->Tau[i] + (ran1(idum) - 0.5)*2.0*2.0*M_PI - p.GAMMA*agents[i].omega;
-
+  tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
+  
   dvx = 0.5*(fx + agents[i].last_Fx)*dt;
   dvy = 0.5*(fy + agents[i].last_Fy)*dt;
 
@@ -124,11 +128,16 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   dy = agents[i].vy*dt + 0.5*fy*dt*dt;
 
   dth = agents[i].omega*dt + 0.5*tau*dt*dt;
-
+  
   agents[i].cm_x = agents[i].cm_x + dx;
   agents[i].cm_y = agents[i].cm_y + dy;
   agents[i].th = agents[i].th + dth;
-    
+  
+  for (j=0; j < agents[i].Npil; j++)
+  {
+    agents[i].pillae[j].th -= dth;
+  
+  }
   //pbc
   
   agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
@@ -170,6 +179,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
       {
         step(p, idum, i, agents, forces, p.DT);
       }
+
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 

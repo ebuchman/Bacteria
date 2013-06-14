@@ -10,7 +10,7 @@
 void make_colony(struct Parameters p, struct Agent *agents, long *idum)
 {
   double  x, y, th;
-  int i;
+  int i, j;
   
   for (i=0; i < p.NUM_BACTERIA; i++)
   {
@@ -21,6 +21,10 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
     th = 2.0*M_PI*ran1(idum);
     
     agents[i].N = p.BACTERIA_LENGTH;
+    agents[i].Npil = p.NPIL;
+    agents[i].pil_span = p.PIL_SPAN;
+    agents[i].pil_len_mean = p.PIL_LEN_MEAN;
+    agents[i].pil_len_std = p.PIL_LEN_STD;
     
     agents[i].cm_x = x;
     agents[i].cm_y = y;
@@ -30,9 +34,7 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
     agents[i].omega = 0;
     agents[i].vx = 0;
     agents[i].vy = 0;
-    
-    agents[i].F_self = 1.0;
-    
+        
     agents[i].ball_r = p.BALL_R;
     
     agents[i].last_Fx = 0;
@@ -44,6 +46,13 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
     
     compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y,
                 agents[i].ball_r, agents[i].th, agents[i].N);
+    
+    
+    for (j=0; j < agents[i].Npil; j++)
+    {
+      agents[i].pillae[j].P = p.MOTOR_POWER;
+    
+    }
   }
 }
 
@@ -111,7 +120,6 @@ void make_colony_uniform(struct Parameters p, struct Agent *agents)
     agents[i].vx = 0;
     agents[i].vy = 0;
     
-    agents[i].F_self = 1.0;
     
     agents[i].ball_r = p.BALL_R;
     
@@ -164,8 +172,13 @@ void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum)
 {
   //uniform centred at mean with length 2*std
   pil[i].L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
+  
+  //retract a little
+  pil[i].L = pil[i].L0 - 0.5*ag.pil_len_std;
 
   //uniform around 0 with length pil_span
-  pil[i].th = ran1(idum)*2*ag.pil_span - ag.pil_span;
+  pil[i].th = ran1(idum)*ag.pil_span - ag.pil_span/2;
+  
+  
   
 }
