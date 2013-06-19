@@ -11,7 +11,8 @@ def min_sep(a, b, w):
   return ds
 
 def retrieve_data(path, mode = 1):
-
+  #open data, retrieve cm's of agents
+  
   #mode: 0 for cm, 1 for extended rods (must compute cm) 
   
   FILENAME = os.path.join(path, 'gnudat/time')
