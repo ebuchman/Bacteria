@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <strings.h>
+#include <sys/stat.h>
+
 #include "bacteria.h"
 
 /*****************************************************************************/
@@ -50,26 +52,56 @@ struct Parameters load_params(struct Parameters p)
 
 /***************************************************************************/
 /*
+  Make directory structure
+*/
+
+void mk_dirs(char * path)
+{
+  char pp[100];
+  
+  mkdir(path, S_IRWXU);
+  
+  sprintf(pp, "%s%s", path, "gnudat/");
+  mkdir(pp, S_IRWXU);
+
+  sprintf(pp, "%s%s", path, "pydat/");
+  mkdir(pp, S_IRWXU);
+
+}
+
+/***************************************************************************/
+/*
  Clean out output files.
  */
 
-void output_clean(struct Parameters p)
+void output_clean(struct Parameters p, char * path)
 {
-  FILE *fd = fopen("pydat/details.txt", "w");
-  FILE *fx = fopen("pydat/cm_x_traj.txt", "w");
-  FILE *fy = fopen("pydat/cm_y_traj.txt", "w");
-  FILE *fth = fopen("pydat/th_traj.txt", "w");
+
+  char pp[100];
+
+  sprintf(pp, "%s%s", path, "pydat/details.txt");
+  FILE *fd = fopen(pp, "w");
   
-  FILE *frob = fopen("pydat/xyt.txt", "w");
+  sprintf(pp, "%s%s", path, "pydat/cm_x_traj.txt");
+  FILE *fx = fopen(pp, "w");
+
+  sprintf(pp, "%s%s", path, "pydat/cm_y_traj.txt");
+  FILE *fy = fopen(pp, "w");
   
+  sprintf(pp, "%s%s", path, "pydat/th_traj.txt");
+  FILE *fth = fopen(pp, "w");
+  
+  sprintf(pp, "%s%s", path, "pydat/xyt.txt");
+  FILE *frob = fopen(pp, "w");
+  
+
   // print a python dictionary of simulation details
   
-  fprintf(fd, "{'r': %f, 'frame_lim': %f, 'run_time': %d, 'N': %d, 'L': %d}",
-          p.BALL_R, p.SCREEN_W, p.RUN_TIME/p.SKIP, p.NUM_BACTERIA*p.BACTERIA_LENGTH,
-          p.BACTERIA_LENGTH);
+  fprintf(fd, "{'r': %f, 'frame_lim': %f, 'run_time': %d, 'skip': %d, 'N': %d, 'L': %d, 'dt': %f}",
+          p.BALL_R, p.SCREEN_W, p.RUN_TIME, p.SKIP, p.NUM_BACTERIA,
+          p.BACTERIA_LENGTH, p.DT);
   
   fclose(frob);
-  
   fclose(fth);
   fclose(fy);
   fclose(fx);
@@ -81,16 +113,26 @@ void output_clean(struct Parameters p)
  Append data to text fields for animation with python
  */
 
-void data_out(struct Parameters p, struct Agent *agents)
+void data_out(struct Parameters p, struct Agent *agents, char * path)
 {
   int i, j;
+  char pp[100];
   
-  FILE *fd = fopen("pydat/details.txt", "a");
-  FILE *fx = fopen("pydat/cm_x_traj.txt", "a");
-  FILE *fy = fopen("pydat/cm_y_traj.txt", "a");
-  FILE *fth = fopen("pydat/th_traj.txt", "a");
+  sprintf(pp, "%s%s", path, "pydat/details.txt");
+  FILE *fd = fopen(pp, "a");
   
-  FILE *frob = fopen("pydat/xyt.txt", "a");
+  sprintf(pp, "%s%s", path, "pydat/cm_x_traj.txt");
+  FILE *fx = fopen(pp, "a");
+  
+  sprintf(pp, "%s%s", path, "pydat/cm_y_traj.txt");
+  FILE *fy = fopen(pp, "a");
+  
+  sprintf(pp, "%s%s", path, "pydat/th_traj.txt");
+  FILE *fth = fopen(pp, "a");
+  
+  sprintf(pp, "%s%s", path, "pydat/xyt.txt");
+  FILE *frob = fopen(pp, "a");
+
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
@@ -106,7 +148,7 @@ void data_out(struct Parameters p, struct Agent *agents)
   }
   
   fprintf(frob,"\n\n");
-  
+
   fclose(frob);
   fclose(fd);
   fclose(fx);
@@ -114,32 +156,46 @@ void data_out(struct Parameters p, struct Agent *agents)
   fclose(fth);
 }
 
-void multiple_out(struct Parameters p, struct Agent *agents, int N)
+void multiple_out(struct Parameters p, struct Agent *agents, int N, char * path)
 {
   int i, j;
   
   char base[100], ind[100];
+  char base2[100];
   
   FILE *fp;
+  FILE *fp2;
   
   sprintf(ind,"%d", N);
   
+  char pp[100];
   
-  strcpy(base,"gnudat/time");
+  sprintf(pp, "%s%s", path, "gnudat/time");
+  strcpy(base, pp);
+
+  sprintf(pp, "%s%s", path, "gnudat/cm");
+  strcpy(base2, pp);
   
   strcat(base,ind);
+  strcat(base2,ind);
   
   fp = fopen(base, "w");
+  fp2 = fopen(base2, "w");
+
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
+  fprintf(fp2, "%f\t%f\n", agents[i].cm_x, agents[i].cm_y);
+    
+    
     for (j= 0; j < p.BACTERIA_LENGTH; j++)
 	{
       fprintf(fp, "%f\t%f\n", agents[i].balls[2*j], agents[i].balls[2*j+1]);
       //printf("%f\t%f\n", agents[i].balls[2*j], agents[i].balls[2*j+1]);
-      
+     
 	}
   }
   
   fclose(fp);
+  fclose(fp2);
 }

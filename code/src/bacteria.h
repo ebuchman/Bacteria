@@ -90,8 +90,10 @@ double min_sep(struct Parameters p, double a, double b);
 
 void output_clean();
 
-void data_out(struct Parameters p, struct Agent *agents);
+void mk_dirs(char * path);
 
-void multiple_out(struct Parameters, struct Agent *agents, int N);
+void data_out(struct Parameters p, struct Agent *agents, char * path);
+
+void multiple_out(struct Parameters, struct Agent *agents, int N, char * path);
 
 void itoa(int n, char *s);

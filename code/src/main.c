@@ -49,7 +49,6 @@ int main()
 
   /* Initialize colony variables */
   
-  
   if (p.UNIFORM == 0) 
     make_colony(p, agents, idum); 
   else
@@ -83,21 +82,27 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   double dvx, dvy, domega, dx, dy, dth;
 
   double fx, fy, tau;
-  
+    
   int j;
+
 
   for (j = 0; j < agents[i].Npil; j++)
   {
-
+    //printf("\n%f ", agents[i].pillae[j].L);
     if (agents[i].pillae[j].L <= 0)
     {
-      if (ran1(idum) > 0.9)  extend_pillus(agents[i].pillae, j, agents[i], idum);
+      //printf("%f\n", agents[i].pillae[j].L);
+      if (ran1(idum) > 0.5)
+      {
+        extend_pillus(agents[i].pillae, j, agents[i], idum);
+      }
     }
-
   }
+
   //printf("%f\n", agents[i].pillae[0].L);
   
   compute_pilli_forces(fint, agents, i, p);
+
   //exit(0);
   /* Net force */
 
@@ -115,12 +120,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   
   agents[i].vx += dvx; 
   agents[i].vy += dvy;
-  
-  if (agents[i].vx * cos(agents[i].th) < 0)
-  {
-    //reverse direction if there was a bounce back
-    agents[i].th -= M_PI;
-  }
 
   agents[i].omega += domega;
 
@@ -151,7 +150,17 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   agents[i].last_Fx = fx;
   agents[i].last_Fy = fy;
 
-  agents[i].last_tau = tau;  
+  agents[i].last_tau = tau;
+  /*
+  if (agents[i].vx * cos(agents[i].th) < 0)
+  {
+    //reverse direction if there was a bounce back
+    agents[i].th -= M_PI;
+    for (j=0; j<agents[i].Npil; i++)
+    {
+      agents[i].pillae[j].L = 0;
+    }
+  }*/
 }
 
 
@@ -164,10 +173,16 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 	       struct Agent *agents)
 {
   int i, count, t = 0;
-
-  output_clean(p);
-    
+  char path[100];
+  
+  sprintf(path, "data/N%d_T%d/", p.NUM_BACTERIA, p.RUN_TIME);
+  printf("here: %s\n", path);
+  mk_dirs(path); // make directories for data
+  
+  output_clean(p, path);
   count = 0;
+
+
 
   while (t <= p.RUN_TIME)
     {
@@ -180,13 +195,13 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
         step(p, idum, i, agents, forces, p.DT);
       }
 
+      
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
       {
-          data_out(p, agents);
-          multiple_out(p, agents, count);
-
+          data_out(p, agents, path);
+          multiple_out(p, agents, count, path);
           count++;
       }
 
@@ -207,6 +222,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 	  printf("\n\n"); 
         }
 
-      t++;  
+      t++;
+
     }
 }
