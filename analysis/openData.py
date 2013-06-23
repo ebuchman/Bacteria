@@ -29,7 +29,6 @@ def retrieve_data(path, mode = 1):
   RUN_TIME = np.cast['int'](details['run_time'])
   SKIP = np.cast['int'](details['skip'])
   WIDTH = np.cast['double'](details['frame_lim'])
-  
 
   TIME_POINTS = int(RUN_TIME/SKIP)
 
@@ -37,21 +36,21 @@ def retrieve_data(path, mode = 1):
 
   for i in xrange(TIME_POINTS):
     t = np.loadtxt((FILENAME+str(i)))
-    
+
     for j in xrange(N):
       if mode == 0:
         # cm's are provided
         trajs[j,i][0] = t[L*j][0]
         trajs[j,i][1] = t[L*j][1]
       elif mode == 1:
-        if L%2 == 1:
+        if L%2 == 0:
           #cm's must be computed from balls surrounding the centre (even number of balls)
           dx = min_sep(t[L*j + L/2][0] , t[L*j + L/2-1][0], WIDTH)
           dy = min_sep(t[L*j + L/2][1] , t[L*j + L/2-1][1], WIDTH)
           th = np.angle(dx + dy*1j)
           
-          trajs[j,i][0] = t[L*j + L/2-1][0] + r*np.cos(th)
-          trajs[j,i][1] = t[L*j + L/2-1][1] + r*np.sin(th)
+          trajs[j,i][0] = (t[L*j + L/2-1][0] + r*np.cos(th))%WIDTH
+          trajs[j,i][1] = (t[L*j + L/2-1][1] + r*np.sin(th))%WIDTH
         else:
           # cm is center ball
           trajs[j,i][0] = t[L*j + int(L/2)][0]
@@ -87,7 +86,6 @@ def retrieve_data_2():
   L = np.cast['int'](details['L'])
   RUN_TIME = np.cast['int'](details['run_time'])
   WIDTH = np.cast['double'](details['frame_lim'])
-  
   
   #TIME_POINTS = int(RUN_TIME)
   TIME_POINTS = len(cm_x_traj)/N
