@@ -9,6 +9,7 @@ struct Parameters
   double  PIL_SPAN;
   double PIL_LEN_MEAN;
   double PIL_LEN_STD;
+  double PROB_EXTEND;
   double MOTOR_POWER;
 
   double K_STIFFNESS;
@@ -28,6 +29,7 @@ struct Pillus
 {
   //initial length, length, force, angle, motor power
   double L0, L, F, th, P;
+  double x, y;
 
 };
 
@@ -63,7 +65,7 @@ struct Forces
 struct Parameters load_params(struct Parameters p);
 
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
-	       struct Agent *agents);
+	       struct Agent *agents, char * path);
 
 
 void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum);

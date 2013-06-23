@@ -17,19 +17,25 @@ int main()
 
   struct Parameters p;
 
+  char path[100];
+
   idum = (long *)malloc(sizeof(long));
   *idum = -(long) time(NULL);
 
+  /* Load Parameters */
   p = load_params(p);
+  
+  /* Build Directory Structure */
+  sprintf(path, "data/N%d_T%d/", p.NUM_BACTERIA, p.RUN_TIME);
+  printf("here: %s\n", path);
+  mk_dirs(path); // make directories for data
 
   /* Allocate memory */
-
   forces.Fx = (double *) malloc(p.NUM_BACTERIA*sizeof(double));
   forces.Fy = (double *) malloc(p.NUM_BACTERIA*sizeof(double));
   forces.Tau = (double *) malloc(p.NUM_BACTERIA*sizeof(double));
   
   /* Zero initial forces */
-  
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       forces.Fx[i] = 0.0;
@@ -38,7 +44,6 @@ int main()
     }
 
   /* Initialize agents */
-  
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
 
   for(i=0; i<p.NUM_BACTERIA; i++)
@@ -48,16 +53,13 @@ int main()
     }    
 
   /* Initialize colony variables */
-  
-  if (p.UNIFORM == 0) 
+  if (p.UNIFORM == 0)
     make_colony(p, agents, idum); 
   else
     make_colony_uniform(p, agents);
-    
-  printf("# %d\t%lf\t%lf\n", agents[0].N, agents[0].cm_x, agents[0].cm_y);
-
+      
   /*** RUN SIMULATION ***/
-  evolution(p, idum, &forces, agents);
+  evolution(p, idum, &forces, agents, path);
 
   printf("# toodles!\n");
 
@@ -88,29 +90,22 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 
   for (j = 0; j < agents[i].Npil; j++)
   {
-    //printf("\n%f ", agents[i].pillae[j].L);
     if (agents[i].pillae[j].L <= 0)
     {
-      //printf("%f\n", agents[i].pillae[j].L);
-      if (ran1(idum) > 0.5)
+      if (ran1(idum) < p.PROB_EXTEND)
       {
         extend_pillus(agents[i].pillae, j, agents[i], idum);
       }
     }
   }
-
-  //printf("%f\n", agents[i].pillae[0].L);
   
   compute_pilli_forces(fint, agents, i, p);
 
-  //exit(0);
   /* Net force */
-
   fx = fint->Fx[i] - p.GAMMA*agents[i].vx;
   fy = fint->Fy[i] - p.GAMMA*agents[i].vy;
   
   /* Net torque */
-
   tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
   
   dvx = 0.5*(fx + agents[i].last_Fx)*dt;
@@ -137,8 +132,8 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
     agents[i].pillae[j].th -= dth;
   
   }
-  //pbc
   
+  //pbc
   agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
   agents[i].cm_y = fabs(fmod(agents[i].cm_y + 3.0*p.SCREEN_W, p.SCREEN_W));
 
@@ -170,15 +165,10 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 */
 
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
-	       struct Agent *agents)
+	       struct Agent *agents, char * path)
 {
   int i, count, t = 0;
-  char path[100];
-  
-  sprintf(path, "data/N%d_T%d/", p.NUM_BACTERIA, p.RUN_TIME);
-  printf("here: %s\n", path);
-  mk_dirs(path); // make directories for data
-  
+
   output_clean(p, path);
   count = 0;
 
@@ -188,14 +178,13 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
     {
       /* Compute forces */
       compute_forces(p, forces, agents, p.DT);
-
+      
       /* Evolve positions */
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
         step(p, idum, i, agents, forces, p.DT);
       }
 
-      
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
@@ -224,5 +213,6 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
       t++;
 
+      
     }
 }

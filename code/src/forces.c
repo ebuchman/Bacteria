@@ -20,37 +20,32 @@ void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, 
 
   for (j = 0; j < agents[i].Npil; j++)
   {
-
     pil = &agents[i].pillae[j];
 
     x = pil->L0 - pil->L;
     if (agents[i].pillae[j].L > 0 && x > 0)
     {
       pil->F = p.K_STIFFNESS*x;
-      if (pil->F > 0 && pil->F < p.F_FRICTION) //common!!
-      {
-        s = pil->L;
-        pil->L -= (pil->P/pil->F)*p.DT;
-        
-      }
-      else
+      
+      
+      
+      if (pil->F >= p.F_FRICTION)
       {
         pil->F = p.F_FRICTION;
-
+        
         f_r += pil->F*cos(pil->th);
         f_t += pil->F*sin(pil->th);
-        
-        if (pil->F != 0.)
-          pil->L -= (pil->P/pil->F)*p.DT;
-
       }
       tau += pil->L*sin(pil->th)*pil->F;
+
+      pil->L -= (pil->P/pil->F)*p.DT;
     }
+    if (pil->L < 0) pil->L = 0;
   }
   forces->Fx[i] += f_r*cos(agents[i].th) + f_t*sin(agents[i].th);
   forces->Fy[i] += f_r*sin(agents[i].th) - f_t*cos(agents[i].th) ;
   forces->Tau[i] += tau;
-    
+      
 }
 
 /*****************************************************************************/
