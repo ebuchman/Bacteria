@@ -1,6 +1,6 @@
-MAX = 282
-SIZE = 1.5
-RANGE = 45
+MAX = 600
+SIZE = 4
+RANGE = 20
 plot [0:RANGE][0:RANGE] "gnudat/time".i using 1:2 wi points lc 1 pt 7 ps SIZE,"gnudat/time".i using 1:2 wi points lc 0 pt 6 ps SIZE 
 pause 0.05 
 i=i+1
