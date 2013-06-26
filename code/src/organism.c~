@@ -76,72 +76,66 @@ void make_colony_uniform(struct Parameters p, struct Agent *agents)
   slip = 0;
   
   for (i=0; i < p.NUM_BACTERIA; i++)
-    {
-      if (x >= p.SCREEN_W + offx - dx)
+  {
+    if (x >= p.SCREEN_W + offx - dx)
 	{
 	  y += dy;
 	  
 	  offx = 0.001;
       
 	  if (slip == 0)
-	    {
-	      offx = dx/2.0 + 0.001;
+      {
+        offx = dx/2.0 + 0.001;
         
-	      slip = 1;
-	    }
+        slip = 1;
+      }
 	  else
-	    {
-	      slip = 0;
-	    }
+      {
+        slip = 0;
+      }
       
 	  x = offx;
 	  
 	  if (y >= p.SCREEN_W + offy - dy)
-	    {
-	      printf("# Error!\n");
-	      y = fabs(fmod(y,p.SCREEN_W));
-	    }
+      {
+        printf("# Error!\n");
+        y = fabs(fmod(y,p.SCREEN_W));
+      }
 	}
     
-      th = 0.0;
+    th = 0.0;
     
-      /* This is useful to set the proper colony size */
+    /* This is useful to set the proper colony size */
     
-      printf("%lf\t%lf\n", x, y);
-
-      /*
-	ROB: NEED MODIFICATIONS FOR PILAE HERE (MAKE THIS, AND ABOVE, AN 
-	      ASSIGNMENT SUBROUTINE. (except x,y which is different from 
-	      above.
-      */
+    printf("%lf\t%lf\n", x, y);
     
-      agents[i].N = p.BACTERIA_LENGTH;
+    agents[i].N = p.BACTERIA_LENGTH;
     
-      agents[i].cm_x = x;
-      agents[i].cm_y = y;
+    agents[i].cm_x = x;
+    agents[i].cm_y = y;
     
-      agents[i].th = th;
+    agents[i].th = th;
     
-      agents[i].omega = 0;
-      agents[i].vx = 0;
-      agents[i].vy = 0;
+    agents[i].omega = 0;
+    agents[i].vx = 0;
+    agents[i].vy = 0;
     
     
-      agents[i].ball_r = p.BALL_R;
+    agents[i].ball_r = p.BALL_R;
     
-      agents[i].last_Fx = 0;
-      agents[i].last_Fy = 0;
+    agents[i].last_Fx = 0;
+    agents[i].last_Fy = 0;
     
-      agents[i].last_tau = 0;
+    agents[i].last_tau = 0;
     
-      agents[i].t = 0;
+    agents[i].t = 0;
     
-      compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y,
-		  agents[i].ball_r, agents[i].th, agents[i].N);
+    compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y,
+                agents[i].ball_r, agents[i].th, agents[i].N);
     
-      x += dx;
+    x += dx;
     
-    }
+  }
 }
 
 /*****************************************************************************/
@@ -186,18 +180,10 @@ void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum)
   pil[i].th = ran1(idum)*ag.pil_span - ag.pil_span/2;
   
   // cm + to_end_of_rod + pilus extension
-
-  /*
-    ROB: Do you extend the pilus in the same direction as the bacteria? It 
-          seems you do, since you are using the same ag->th
-  */
   pil[i].x = ag->cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag->th) + pil[i].L0*cos(ag->th)
   pil[i].y = ag->cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag->th) + pil[i].L0*sin(ag->th)
   
   // pbc
-
-    /* ROB: pi or pil? */
-
   pi[i].x = pil[i].x%p.WIDTH
   pi[i].y = pil[i].y%p.WIDTH
   

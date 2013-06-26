@@ -23,9 +23,6 @@ int main()
   *idum = -(long) time(NULL);
 
   /* Load Parameters */
-
-  /* ROB: SHOULD THIS BE p = load_params(&p) ? */
-
   p = load_params(p);
   
   /* Build Directory Structure */
@@ -39,7 +36,6 @@ int main()
   forces.Tau = (double *) malloc(p.NUM_BACTERIA*sizeof(double));
   
   /* Zero initial forces */
-
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       forces.Fx[i] = 0.0;
@@ -48,27 +44,21 @@ int main()
     }
 
   /* Initialize agents */
-
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
 
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       agents[i].balls = (double *)malloc(p.BACTERIA_LENGTH*2*sizeof(double));
-
-      /* ROB: Is this line necessary? */
-
       agents[i].pillae = (struct Pillus *)malloc(p.NPIL*sizeof(struct Pillus));
     }    
 
   /* Initialize colony variables */
-
   if (p.UNIFORM == 0)
     make_colony(p, agents, idum); 
   else
     make_colony_uniform(p, agents);
       
   /*** RUN SIMULATION ***/
-
   evolution(p, idum, &forces, agents, path);
 
   printf("# toodles!\n");
@@ -97,12 +87,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
     
   int j;
 
-  /* ROB: 
-     
-  Extend Pilus subroutine - should this be separate from the subroutine that 
-  moves the bacteria (i.e. stepper)?
-
-  */
 
   for (j = 0; j < agents[i].Npil; j++)
   {
@@ -118,17 +102,10 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   compute_pilli_forces(fint, agents, i, p);
 
   /* Net force */
-
   fx = fint->Fx[i] - p.GAMMA*agents[i].vx;
   fy = fint->Fy[i] - p.GAMMA*agents[i].vy;
   
   /* Net torque */
-
-  /* 
-     ROB: Ok, this is the velocity-verlet routine, which will not be 
-     modified. This could be in its own subroutine. 
-  */
-
   tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
   
   dvx = 0.5*(fx + agents[i].last_Fx)*dt;
@@ -150,12 +127,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   agents[i].cm_y = agents[i].cm_y + dy;
   agents[i].th = agents[i].th + dth;
   
-
-  /* 
-     ROB: Are you rotating the pili too? shouldn't these remain fixed in 
-     orientation while the bacteria rotate?
-  */
-  
   for (j=0; j < agents[i].Npil; j++)
   {
     agents[i].pillae[j].th -= dth;
@@ -163,11 +134,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   }
   
   //pbc
-
-  /* ROB: You could write a subroutine to implement pbc (and use this 
-     all over the place)
-  */
-
   agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
   agents[i].cm_y = fabs(fmod(agents[i].cm_y + 3.0*p.SCREEN_W, p.SCREEN_W));
 
@@ -204,23 +170,16 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
   int i, count, t = 0;
 
   output_clean(p, path);
-
   count = 0;
+
+
 
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
-
       compute_forces(p, forces, agents, p.DT);
       
-      /* 
-	 Evolve positions 
-
-	 ROB: Are you evolving the bacteria postions sequentially and using 
-	 the updated ith position to compute the motion of the (i+1)th bacteria
-	 OK, not if all your bacteria interactions are in the compute_forces.
-      */
-
+      /* Evolve positions */
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
         step(p, idum, i, agents, forces, p.DT);
