@@ -1,0 +1,20 @@
+Parameters_for_the_program_agent.c
+
+RUN_TIME=		1000
+SKIP=			10
+
+NUM_BACTERIA= 		100
+BACTERIA_LENGTH=	4
+
+CONSERVATIVE=		1
+F_SELF=    	2
+F_FRICTION=     10
+
+UNIFORM=		1	
+	
+SCREEN_W= 		15
+BALL_R= 		0.2
+GAMMA= 			10.0
+E=			1.0
+
+DT= 			0.01

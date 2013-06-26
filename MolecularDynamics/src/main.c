@@ -49,15 +49,11 @@ int main()
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       agents[i].balls = (double *)malloc(p.BACTERIA_LENGTH*2*sizeof(double));
-      agents[i].pillae = (struct Pillus *)malloc(p.NPIL*sizeof(struct Pillus));
     }    
 
   /* Initialize colony variables */
-  if (p.UNIFORM == 0)
-    make_colony(p, agents, idum); 
-  else
-    make_colony_uniform(p, agents);
-      
+  make_colony(p, agents, idum);
+    
   /*** RUN SIMULATION ***/
   evolution(p, idum, &forces, agents, path);
 
@@ -82,58 +78,47 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 {
     
   double dvx, dvy, domega, dx, dy, dth;
-
+  double rand_tau;
   double fx, fy, tau;
     
   int j;
 
-
-  for (j = 0; j < agents[i].Npil; j++)
-  {
-    if (agents[i].pillae[j].L <= 0)
-    {
-      if (ran1(idum) < p.PROB_EXTEND)
-      {
-        extend_pillus(agents[i].pillae, j, agents[i], idum);
-      }
-    }
-  }
-  
-  compute_pilli_forces(fint, agents, i, p);
-
   /* Net force */
-  fx = fint->Fx[i] - p.GAMMA*agents[i].vx;
-  fy = fint->Fy[i] - p.GAMMA*agents[i].vy;
+  
+  fx = fint->Fx[i] + p.F_SELF*cos(agents[i].th) - p.GAMMA*agents[i].vx;
+  fy = fint->Fy[i] + p.F_SELF*sin(agents[i].th) - p.GAMMA*agents[i].vy;
   
   /* Net torque */
-  tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
+  
+  rand_tau = 6*M_PI*ran1(idum) -3*M_PI);
+  
+  tau = fint->Tau[i] + rand_tau - p.GAMMA*agents[i].omega;
+
+  /* Update the agent */
   
   dvx = 0.5*(fx + agents[i].last_Fx)*dt;
   dvy = 0.5*(fy + agents[i].last_Fy)*dt;
-
   domega = 0.5*(tau + agents[i].last_tau)*dt;
   
   agents[i].vx += dvx; 
   agents[i].vy += dvy;
-
   agents[i].omega += domega;
 
   dx = agents[i].vx*dt + 0.5*fx*dt*dt;
   dy = agents[i].vy*dt + 0.5*fy*dt*dt;
-
   dth = agents[i].omega*dt + 0.5*tau*dt*dt;
   
   agents[i].cm_x = agents[i].cm_x + dx;
   agents[i].cm_y = agents[i].cm_y + dy;
-  agents[i].th = agents[i].th + dth;
   
-  for (j=0; j < agents[i].Npil; j++)
-  {
-    agents[i].pillae[j].th -= dth;
+  // if agents are extended, adjust theta. Otherwise, theta is in direction of velocity
+  if (p.BACTERIA_LENGTH > 1)
+    agents[i].th = agents[i].th + dth;
+  else
+    agents[i].th = atan(agents[i].vy/agents[i].vx);
   
-  }
-  
-  //pbc
+    
+  //pbc           // ?????? 3 AND 6???
   agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
   agents[i].cm_y = fabs(fmod(agents[i].cm_y + 3.0*p.SCREEN_W, p.SCREEN_W));
 
@@ -146,16 +131,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   agents[i].last_Fy = fy;
 
   agents[i].last_tau = tau;
-  /*
-  if (agents[i].vx * cos(agents[i].th) < 0)
-  {
-    //reverse direction if there was a bounce back
-    agents[i].th -= M_PI;
-    for (j=0; j<agents[i].Npil; i++)
-    {
-      agents[i].pillae[j].L = 0;
-    }
-  }*/
+  
 }
 
 

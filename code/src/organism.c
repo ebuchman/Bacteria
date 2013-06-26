@@ -179,6 +179,14 @@ void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum)
   //uniform around 0 with length pil_span
   pil[i].th = ran1(idum)*ag.pil_span - ag.pil_span/2;
   
+  // cm + to_end_of_rod + pilus extension
+  pil[i].x = ag->cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag->th) + pil[i].L0*cos(ag->th)
+  pil[i].y = ag->cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag->th) + pil[i].L0*sin(ag->th)
+  
+  // pbc
+  pi[i].x = pil[i].x%p.WIDTH
+  pi[i].y = pil[i].y%p.WIDTH
+  
   
   
 }

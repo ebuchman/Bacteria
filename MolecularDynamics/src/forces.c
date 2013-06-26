@@ -7,49 +7,6 @@
 
 /*****************************************************************************/
 
-void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p)
-{
-
-  double f_x=0; double f_y=0; double tau=0;
-  double f_r=0; double f_t=0;
-  double x;
-  int j;
-  struct Pillus * pil;
-  
-  double s;
-
-  for (j = 0; j < agents[i].Npil; j++)
-  {
-    pil = &agents[i].pillae[j];
-
-    x = pil->L0 - pil->L;
-    if (agents[i].pillae[j].L > 0 && x > 0)
-    {
-      pil->F = p.K_STIFFNESS*x;
-      
-      
-      
-      if (pil->F >= p.F_FRICTION)
-      {
-        pil->F = p.F_FRICTION;
-        
-        f_r += pil->F*cos(pil->th);
-        f_t += pil->F*sin(pil->th);
-      }
-      tau += pil->L*sin(pil->th)*pil->F;
-
-      pil->L -= (pil->P/pil->F)*p.DT;
-    }
-    if (pil->L < 0) pil->L = 0;
-  }
-  forces->Fx[i] += f_r*cos(agents[i].th) + f_t*sin(agents[i].th);
-  forces->Fy[i] += f_r*sin(agents[i].th) - f_t*cos(agents[i].th) ;
-  forces->Tau[i] += tau;
-      
-}
-
-/*****************************************************************************/
-
 // return vector of forces and vector of torques for entire colony
 
 void compute_forces(struct Parameters p, struct Forces *forces,

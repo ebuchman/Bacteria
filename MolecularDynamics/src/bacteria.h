@@ -4,15 +4,9 @@ struct Parameters
   int SKIP;
   int NUM_BACTERIA;
   int BACTERIA_LENGTH;
-    
-  int NPIL;
-  double  PIL_SPAN;
-  double PIL_LEN_MEAN;
-  double PIL_LEN_STD;
-  double PROB_EXTEND;
-  double MOTOR_POWER;
 
-  double K_STIFFNESS;
+  int CONSERVATIVE;
+  double F_SELF;
   double F_FRICTION;
 
   int UNIFORM;
@@ -25,13 +19,6 @@ struct Parameters
   double DT;
 };
 
-struct Pillus
-{
-  //initial length, length, force, angle, motor power
-  double L0, L, F, th, P;
-  double x, y;
-
-};
 
 struct Agent
 {
@@ -45,11 +32,6 @@ struct Agent
   double vx, vy;
   double last_Fx, last_Fy, last_tau;
     
-  int Npil;
-  double pil_span, pil_len_mean, pil_len_std;
-  struct Pillus *pillae;
-  
-    
   int t;
 };
 
@@ -62,15 +44,18 @@ struct Forces
   double *Tau;
 };
 
+double * xy_position(struct Parameters p, int ID);
+
+
+double get_energy(struct Parameters p, struct Agent * agents, int norm);
+
+void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
+
+
 struct Parameters load_params(struct Parameters p);
 
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
 	       struct Agent *agents, char * path);
-
-
-void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum);
-
-void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p);
 
 void compute_forces(struct Parameters p, struct Forces *forces, 
 		    struct Agent *agents, double dt);
