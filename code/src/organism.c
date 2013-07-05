@@ -6,6 +6,45 @@
 #include "bacteria.h"
 
 /****************************************************************/
+// method to set uniform initial density
+double * xy_position(struct Parameters p, int ID)
+{
+  double * xy = malloc(sizeof(double)*2);
+  double V, A, N, L, D, offset, wx, wy;
+  int nx, ny;
+  double x, y;
+  
+  V = p.SCREEN_W*p.SCREEN_W;
+  N = p.NUM_BACTERIA;
+  A = V/N;
+  
+  D = p.BALL_R*2;
+  L = D*p.BACTERIA_LENGTH;
+  
+  offset = (-(L+D) + sqrt((L-D)*(L-D) + 4*A))/4.;
+  
+  wx = D + 2*offset;
+  wy = L + 2*offset;
+  
+  nx = (int) p.SCREEN_W / wx; //round up
+  ny = (int) p.SCREEN_W / wy;
+  
+  if (nx*ny < N)
+  {
+    nx+=1;
+    ny+=1;
+  }
+  
+  x = (ID%nx)*wx + (offset + p.BALL_R);
+  y = (int) (ID/nx)*wy + (offset + L/2 );
+  
+  xy[0] = x;
+  xy[1] = y;
+  
+  return xy;
+}
+
+/****************************************************************/
 
 void make_colony(struct Parameters p, struct Agent *agents, long *idum)
 {
@@ -15,10 +54,20 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
   for (i=0; i < p.NUM_BACTERIA; i++)
   {
     
-    x = p.SCREEN_W*ran1(idum);
-    y = p.SCREEN_W*ran1(idum);
-    
-    th = 2.0*M_PI*ran1(idum);
+    if (p.UNIFORM == 0)
+    {
+      x = p.SCREEN_W*ran1(idum);
+      y = p.SCREEN_W*ran1(idum);
+      th = 2.0*M_PI*ran1(idum);
+    }
+    else
+    {
+      double * xy;
+      xy = xy_position(p, i);
+      x = xy[0];
+      y = xy[1];
+      th = M_PI/2;
+    }
     
     agents[i].N = p.BACTERIA_LENGTH;
     agents[i].Npil = p.NPIL;
@@ -168,25 +217,32 @@ void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
 /*****************************************************************************/
 
 
-void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum)
+void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum, struct Parameters p)
 {
+  double r, t, dx, dy;
+  
   //uniform centred at mean with length 2*std
   pil[i].L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
+  pil[i].L = pil[i].L0;
+  pil[i].x_ext = 0;
   
-  //retract a little
-  pil[i].L = pil[i].L0 - 0.5*ag.pil_len_std;
-
   //uniform around 0 with length pil_span
   pil[i].th = ran1(idum)*ag.pil_span - ag.pil_span/2;
   
-  // cm + to_end_of_rod + pilus extension
-  pil[i].x = ag->cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag->th) + pil[i].L0*cos(ag->th)
-  pil[i].y = ag->cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag->th) + pil[i].L0*sin(ag->th)
+  // anchor (x,y) : cm + to_end_of_rod + pilus extension  
+  r = pil[i].L * cos(pil[i].th);
+  t = pil[i].L * sin(pil[i].th);
+  
+  dx = r*cos(ag.th) - t*sin(ag.th);
+  dy = r*sin(ag.th) + t*cos(ag.th);
+  
+  pil[i].x = ag.cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag.th) + dx;
+  pil[i].y = ag.cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag.th) + dy;
   
   // pbc
-  pi[i].x = pil[i].x%p.WIDTH
-  pi[i].y = pil[i].y%p.WIDTH
+  pil[i].x = fmod(pil[i].x, p.SCREEN_W);
+  pil[i].y = fmod(pil[i].y, p.SCREEN_W);
   
-  
+  printf("LO: %f, th: %f, x:, %f, y: %f\n", pil[i].L, pil[i].th, pil[i].x, pil[i].y);
   
 }

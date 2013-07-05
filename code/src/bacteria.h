@@ -29,7 +29,10 @@ struct Pillus
 {
   //initial length, length, force, angle, motor power
   double L0, L, F, th, P;
-  double x, y;
+  
+  double x_ext; // spring extension
+  
+  double x, y; //position of anchor
 
 };
 
@@ -62,13 +65,21 @@ struct Forces
   double *Tau;
 };
 
+
+double * xy_position(struct Parameters p, int ID);
+
+double compute_new_angle(double dx, double dy, double th1);
+
+double get_energy(struct Parameters p, struct Agent * agents, int norm);
+
+void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
+
 struct Parameters load_params(struct Parameters p);
 
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
 	       struct Agent *agents, char * path);
 
-
-void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum);
+void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum, struct Parameters p);
 
 void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p);
 
@@ -86,7 +97,7 @@ void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
 
 
 void step(struct Parameters p, long *idum, int i, struct Agent *agents, 
-	  struct Forces *Fint, double dt);
+	  struct Forces *Fint, double dt, int t);
 
 double min_sep(struct Parameters p, double a, double b);
 
