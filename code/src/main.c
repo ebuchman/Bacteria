@@ -60,10 +60,8 @@ int main()
     }    
 
   /* Initialize colony variables */
-  if (p.UNIFORM == 0)
-    make_colony(p, agents, idum); 
-  else
-    make_colony_uniform(p, agents);
+  make_colony(p, agents, idum); 
+
       
   /*** RUN SIMULATION ***/
 
