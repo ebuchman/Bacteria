@@ -6,13 +6,6 @@
 #include "bacteria.h"
 
 
-int signum(double num)
-{
-  if (num >= 0) return 1;
-  else return -1;
-}
-
-
 
 /*************************************************/
 // recenters atan to give [0, 2*PI]

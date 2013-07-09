@@ -24,6 +24,7 @@ int main()
   *idum = -(long) time(NULL); // random 
 
   /* Load Parameters */
+
   p = load_params(p);
   
   /* Build Directory Structure */
@@ -37,6 +38,7 @@ int main()
   forces.Tau = (double *) malloc(p.NUM_BACTERIA*sizeof(double));
   
   /* Zero initial forces */
+
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       forces.Fx[i] = 0.0;
@@ -45,18 +47,26 @@ int main()
     }
 
   /* Initialize agents */
+
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
 
   for(i=0; i<p.NUM_BACTERIA; i++)
     {
       agents[i].balls = (double *)malloc(p.BACTERIA_LENGTH*2*sizeof(double));
+
+      /* ROB: Is this line necessary? */
+      // isnt it? //
       agents[i].pillae = (struct Pillus *)malloc(p.NPIL*sizeof(struct Pillus));
     }    
 
   /* Initialize colony variables */
-  make_colony(p, agents, idum);
+  if (p.UNIFORM == 0)
+    make_colony(p, agents, idum); 
+  else
+    make_colony_uniform(p, agents);
       
   /*** RUN SIMULATION ***/
+
   evolution(p, idum, &forces, agents, path);
 
   printf("# toodles!\n");
@@ -89,6 +99,12 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   
   struct pilForces pil_forces; // holds pillae forces summed over pillae (single agent)
 
+  /* ROB: 
+     
+  Extend Pilus subroutine - should this be separate from the subroutine that 
+  moves the bacteria (i.e. stepper)?
+
+  */
 
   
   int j;
@@ -158,7 +174,12 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   /* Net torque */
   tau = fint->Tau[i] + pil_forces.Tau - p.GAMMA*agents[i].omega;
   
-  /* Update the agent */
+  
+  /* 
+     ROB: Ok, this is the velocity-verlet routine, which will not be 
+     modified. This could be in its own subroutine. 
+  */
+
   
   dvx = 0.5*(fx + agents[i].last_Fx)*dt;
   dvy = 0.5*(fy + agents[i].last_Fy)*dt;
@@ -183,6 +204,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   
   rod_end_x = fmod(rod_end_x, p.SCREEN_W);
   rod_end_y = fmod(rod_end_y, p.SCREEN_W);
+
   
   for (j=0; j < agents[i].Npil; j++)
   {
@@ -270,6 +292,12 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   
   
   //pbc           // ?????? 3 AND 6???
+  //pbc
+
+  /* ROB: You could write a subroutine to implement pbc (and use this 
+     all over the place)
+  */
+
   agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
   agents[i].cm_y = fabs(fmod(agents[i].cm_y + 3.0*p.SCREEN_W, p.SCREEN_W));
 
@@ -307,17 +335,24 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
   int i, count, t = 0;
 
   output_clean(p, path);
+
   count = 0;
-
-
 
 
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
+
       compute_forces(p, forces, agents, p.DT);
       
-      /* Evolve positions */
+      /* 
+	 Evolve positions 
+
+	 ROB: Are you evolving the bacteria postions sequentially and using 
+	 the updated ith position to compute the motion of the (i+1)th bacteria
+	 OK, not if all your bacteria interactions are in the compute_forces.
+      */
+
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
         step(p, idum, i, agents, forces, p.DT, t);
