@@ -7,11 +7,10 @@
 
 /*****************************************************************************/
 
-void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p)
+void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p)
 {
 
-  double f_x=0; double f_y=0; double tau=0;
-  double f_r=0; double f_t=0;
+  double this_fx, this_fy, this_tau;
   double x;
   int j;
   struct Pillus * pil;
@@ -27,19 +26,31 @@ void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, 
     if (pil->L > 0 && x > 0)
     {
       pil->F = p.K_STIFFNESS*x;
-      if (pil->F > p.F_FRICTION) pil->F = p.F_FRICTION;
         
-      f_r += pil->F*cos(pil->th);
-      f_t += pil->F*sin(pil->th);
-      tau += p.BALL_R*p.BACTERIA_LENGTH*pil->F*sin(pil->th);
+            
+      this_fx = pil->F*cos(pil->th);
+      this_fy = pil->F*sin(pil->th);
+      this_tau = p.BALL_R*p.BACTERIA_LENGTH*(-this_fx*sin(agents[i].th) + this_fy*cos(agents[i].th));
+      
+      
+      forces->Fx += this_fx;
+      forces->Fy += this_fy;
+      forces->Tau += this_tau;
+      
+      
+      //forces->Fx[i] += this_fx;
+      //forces->Fy[i] += this_fy;
+      //forces->Tau[i] += this_tau;
+      
+      
+      
+      
+      //printf("fx, fy, tau: %f, %f, %f\n", this_fx, this_fy, this_tau);
+
     }
   }//printf("\n");
-  forces->Fx[i] += f_r*cos(agents[i].th) - f_t*sin(agents[i].th);
-  forces->Fy[i] += f_r*sin(agents[i].th) + f_t*cos(agents[i].th) ;
-  forces->Tau[i] += tau;
-  
-  printf("Pillus: x: %f, th: %f, F: %f, f_r: %f, f_t: %f\n", x, pil->th, pil->F, f_r, f_t);
-      
+
+    
 }
 
 /*****************************************************************************/

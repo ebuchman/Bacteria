@@ -13,8 +13,9 @@ struct Parameters
   double MOTOR_POWER;
 
   double K_STIFFNESS;
-  double F_FRICTION;
-
+  double STATIC_FRICTION;
+  double KINETIC_FRICTION;
+  
   int UNIFORM;
   
   double SCREEN_W;
@@ -65,10 +66,19 @@ struct Forces
   double *Tau;
 };
 
+struct pilForces
+{
+  double Fx;
+  double Fy;
+  double Tau;
+};
+
+
+int signum(double num);
 
 double * xy_position(struct Parameters p, int ID);
 
-double compute_new_angle(double dx, double dy, double th1);
+double compute_new_angle(double dx, double dy);
 
 double get_energy(struct Parameters p, struct Agent * agents, int norm);
 
@@ -81,7 +91,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
 void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum, struct Parameters p);
 
-void compute_pilli_forces(struct Forces * forces, struct Agent * agents, int i, struct Parameters p);
+void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p);
 
 void compute_forces(struct Parameters p, struct Forces *forces, 
 		    struct Agent *agents, double dt);

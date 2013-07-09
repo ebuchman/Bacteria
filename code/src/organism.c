@@ -220,6 +220,7 @@ void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
 void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum, struct Parameters p)
 {
   double r, t, dx, dy;
+  double th_from_r, th;
   
   //uniform centred at mean with length 2*std
   pil[i].L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
@@ -227,14 +228,18 @@ void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum, stru
   pil[i].x_ext = 0;
   
   //uniform around 0 with length pil_span
-  pil[i].th = ran1(idum)*ag.pil_span - ag.pil_span/2;
+  th_from_r = ran1(idum)*ag.pil_span - ag.pil_span/2; //angle from radius of agent
+  th = ag.th + th_from_r;  //angle in xy
+
+  if (th < 0) th = 2*M_PI + th;
+  else if (th > 2*M_PI) th = th - 2*M_PI;
   
+  pil[i].th = th;
+    
+        
   // anchor (x,y) : cm + to_end_of_rod + pilus extension  
-  r = pil[i].L * cos(pil[i].th);
-  t = pil[i].L * sin(pil[i].th);
-  
-  dx = r*cos(ag.th) - t*sin(ag.th);
-  dy = r*sin(ag.th) + t*cos(ag.th);
+  dx = pil[i].L*cos(th);
+  dy = pil[i].L*sin(th);
   
   pil[i].x = ag.cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag.th) + dx;
   pil[i].y = ag.cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag.th) + dy;
@@ -243,6 +248,6 @@ void extend_pillus(struct Pillus * pil, int i, struct Agent ag, long *idum, stru
   pil[i].x = fmod(pil[i].x, p.SCREEN_W);
   pil[i].y = fmod(pil[i].y, p.SCREEN_W);
   
-  printf("LO: %f, th: %f, x:, %f, y: %f\n", pil[i].L, pil[i].th, pil[i].x, pil[i].y);
+  //printf("LO: %f, th: %f, x:, %f, y: %f\n", pil[i].L, pil[i].th, pil[i].x, pil[i].y);
   
 }

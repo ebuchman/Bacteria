@@ -11,7 +11,7 @@ int main()
 
   long *idum;
 
-  struct Forces forces;
+  struct Forces forces; // holds MD forces in array over all agents
 
   struct Agent *agents;
 
@@ -20,8 +20,8 @@ int main()
   char path[100];
 
   idum = (long *)malloc(sizeof(long));
-  *idum = (long) 2718; // consistent
-  //*idum = -(long) time(NULL); // random 
+  //*idum = (long) 271; // consistent
+  *idum = -(long) time(NULL); // random 
 
   /* Load Parameters */
   p = load_params(p);
@@ -80,23 +80,25 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 {
     
   double dvx, dvy, domega, dx, dy, dth;
-
+  double net_f, net_th;
   double fx, fy, tau;
   double rod_end_x, rod_end_y;
   double dxp, dyp, R, L;
   double dU, dxs;
   struct Pillus * pil;
+  
+  struct pilForces pil_forces; // holds pillae forces summed over pillae (single agent)
+
 
   
-    
   int j;
 
-
+  // extend pilli
   for (j = 0; j < agents[i].Npil; j++)
   {
     if (agents[i].pillae[j].L <= 0)
     {
-      if (1) //(ran1(idum) < p.PROB_EXTEND)
+      if (ran1(idum) < p.PROB_EXTEND)
       {
         printf("extending pillus!\n");
         extend_pillus(agents[i].pillae, j, agents[i], idum, p);
@@ -104,15 +106,56 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
     }
   }
 
-  compute_pilli_forces(fint, agents, i, p);
+  compute_pilli_forces(&pil_forces, agents, i, p);
+  
+  net_th = compute_new_angle(pil_forces.Fx, pil_forces.Fy);
 
   /* Net force */
-  
-  fx = fint->Fx[i] - p.GAMMA*agents[i].vx;
-  fy = fint->Fy[i] - p.GAMMA*agents[i].vy;
+  fx = fint->Fx[i] + pil_forces.Fx;
+  fy = fint->Fy[i] + pil_forces.Fy;
+      
+  //FRICTION    
+      
+  // static: if net force is greater than friction, otherwise, forces are 0
+  if (agents[i].vx == 0 && agents[i].vy ==0)
+  {
+      net_f = sqrt(fx*fx + fy*fy) - p.STATIC_FRICTION; // should be static friction
+      
+      if (net_f > 0)
+      {
+        fx = fx - p.STATIC_FRICTION*cos(net_th);
+        fy = fy - p.STATIC_FRICTION*sin(net_th); 
+      }
+      else
+      {
+        fx = 0;
+        fy = 0;
+      }
+  }
+  //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
+  else
+  {
+      net_f = sqrt(fx*fx + fy*fy) - p.KINETIC_FRICTION; // should be kinetic friction
+
+      if (net_f > 0)
+      {
+        fx = fx - p.KINETIC_FRICTION*cos(net_th);
+        fy = fy - p.KINETIC_FRICTION*sin(net_th); 
+      }
+      else
+      {
+        fx = 0;
+        fy = 0;
+      }
+      
+      fx -= p.GAMMA*agents[i].vx;
+      fy -= p.GAMMA*agents[i].vy;
+  }
+
+  printf("i, fx, fy: %d, %f, %f\n", i, fx, fy);
   
   /* Net torque */
-  
+  fint->Tau[i] += pil_forces.Tau;
   tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
   
   /* Update the agent */
@@ -158,12 +201,23 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
       
       //printf("tau: %f\n\n", tau);
       
-    
+//      printf("L and R: %f, %f\n", L, R);
+      //printf("x, y: %f, %f\n", dxp, dyp);
+      //printf("th1, th2: %f, %f\n", agents[i].th*180./M_PI, pil->th*180./M_PI);
+      
+      //printf("x: %f; dx dy: %f, %f\n", pil->x_ext, dxp, dyp);
+      
+      //if (fabs((agents[i].th - pil->th)*180./M_PI) > 30) printf("diff th: %f \n", (agents[i].th - pil->th)*180./M_PI);
+      
+      //printf("diff th: %f \n", (agents[i].th - pil->th)*180./M_PI);
+      //printf("fx, fy, tau: %f, %f, %f\n", fx, fy, tau);
+
+      /*
       printf("cmx, cmy: %f, %f; rodx, rody: %f, %f; pilx, pily: %f, %f\n", agents[i].cm_x, agents[i].cm_y, rod_end_x, rod_end_y, pil->x, pil->y);
       
       printf("fx: %f, fy: %f L: %f, R: %f\n", fx, fy, L, R);
       printf("th: %f, dx, dy: %f, %f; dxp, dyp: %f, %f\n\n", agents[i].th, dx, dy, dxp, dyp);
-    
+    */
       if (R > L)
       {
         pil->x_ext += R - L; //extend sping
@@ -171,26 +225,39 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
       else if (R < L)
       {
         pil->L += R - L; //retract pillus
+        //printf("\n retract, R, L, dx, dy: %f, %f, %f, %f, %f\n", pil->L, R, L, dx, dy);
       }
       
-      if ((dx == 0 && dy == 0) || (R == L))
+      dx = fabs(dx);
+      dy = fabs(dy);
+      
+      if (dx < 0.0001 && dy < 0.0001) //|| R==L)
       {
-        pil->x_ext += (pil->P / p.F_FRICTION)*p.DT;
+        printf("no motion\n");
+        pil->x_ext += (pil->P / p.STATIC_FRICTION)*p.DT;
       }
       
 
-      pil->th = compute_new_angle(dxp, dyp, agents[i].th);
+      pil->th = compute_new_angle(dxp, dyp);
+      
+      
+      int snapped;
+      
       
       if (pil->x_ext > 0.5*pil->L0) 
+      //if (t == 10)
       { 
         printf("snapped!, %d\n\n", t);
-        pil->L = 0; // pillus snaps     
+        pil->L = 0.0; // pillus snaps     
+        snapped = 1;
       }
-      if (pil->L == 0.0)
+      
+      if (pil->L <= 0.0)
       {
-        
-        pil->x_ext = 0;
-        pil->F = 0;   
+        if (snapped != 1) {printf("done\n"); }//exit(0);}
+        pil->L = 0.0;
+        pil->x_ext = 0.0;
+        pil->F = 0.0;   
         //exit(0);
       }
 
@@ -244,6 +311,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
 
 
+
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
@@ -254,6 +322,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
       {
         step(p, idum, i, agents, forces, p.DT, t);
       }
+      printf("\n\n");
 
       /* Periodically store results in files */
 
@@ -268,8 +337,11 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
       /* Sanity check */
 
-      if (t == 3000) exit(0);
-
+      if (t == 10000) 
+      {
+        printf("anchor x and y: %f, %f\n", agents[0].pillae[0].x, agents[0].pillae[0].y);
+        exit(0);
+      }
       if (t == 1)
         {
 	  printf("# (%f, %f), %f\n\n", agents[0].cm_x, agents[0].cm_y, 

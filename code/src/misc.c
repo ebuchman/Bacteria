@@ -6,26 +6,40 @@
 #include "bacteria.h"
 
 
+int signum(double num)
+{
+  if (num >= 0) return 1;
+  else return -1;
+}
+
+
+
 /*************************************************/
 // recenters atan to give [0, 2*PI]
-double compute_new_angle(double dx, double dy, double th1)
+double compute_new_angle(double dx, double dy)
 {
-  double phi, th2; 
+  double phi; 
     
-  phi = atan(fabs(dy / dx));
-
-  if (dx > 0 && dy > 0) th2 = -fabs(phi - th1);
-  else if (dx < 0 && dy > 0) th2 = fabs(M_PI - phi - th1);
-  else if (dx < 0 && dy < 0) th2 = fabs(phi - th1 - M_PI);
-  else if (dx > 0 && dy < 0) th2 = -fabs(th1 + phi);
-  
-  if (fabs(th2) > M_PI)
+    
+  if (dx == 0) 
   {
-    printf("phi: %f, th1: %f, th2: %f; dx, dy: %f, %f\n\n", phi, th1, th2, dx, dy);
-    exit(0);  
+    if (dy > 0) phi = M_PI/2;
+    else if (dy < 0) phi = M_PI*1.5;
+    else phi = 0;
   }
+  else
+  {
+    phi = atan(fabs(dy / dx));
   
-  return th2;
+    if (dx < 0 && dy > 0) phi = M_PI - phi;
+    else if (dx < 0 && dy < 0) phi = M_PI + phi;
+    else if (dx > 0 && dy < 0) phi = 2*M_PI - phi;
+    else phi = phi;
+  
+  }
+
+  return phi;
+
 }
 
 /*****************************************************************************/

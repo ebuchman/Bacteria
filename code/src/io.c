@@ -34,7 +34,8 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.MOTOR_POWER) );
   
   fscanf(fp, "%s %lf", dummy, &(p.K_STIFFNESS) );
-  fscanf(fp, "%s %lf", dummy, &(p.F_FRICTION) );
+  fscanf(fp, "%s %lf", dummy, &(p.STATIC_FRICTION) );
+  fscanf(fp, "%s %lf", dummy, &(p.KINETIC_FRICTION) );
   
   fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
   
