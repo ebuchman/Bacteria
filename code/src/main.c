@@ -117,9 +117,9 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   //FRICTION    
       
   // static: if net force is greater than friction, otherwise, forces are 0
-  if (agents[i].vx == 0 && agents[i].vy ==0)
+  if (agents[i].vx == 0 && agents[i].vy == 0)
   {
-      net_f = sqrt(fx*fx + fy*fy) - p.STATIC_FRICTION; // should be static friction
+      net_f = sqrt(fx*fx + fy*fy) - p.STATIC_FRICTION;
       
       if (net_f > 0)
       {
@@ -135,7 +135,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
   else
   {
-      net_f = sqrt(fx*fx + fy*fy) - p.KINETIC_FRICTION; // should be kinetic friction
+      net_f = sqrt(fx*fx + fy*fy) - p.KINETIC_FRICTION;
 
       if (net_f > 0)
       {
@@ -148,6 +148,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
         fy = 0;
       }
       
+      // velocity dependent dissipation
       fx -= p.GAMMA*agents[i].vx;
       fy -= p.GAMMA*agents[i].vy;
   }
@@ -155,8 +156,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   printf("i, fx, fy: %d, %f, %f\n", i, fx, fy);
   
   /* Net torque */
-  fint->Tau[i] += pil_forces.Tau;
-  tau = fint->Tau[i] - p.GAMMA*agents[i].omega;
+  tau = fint->Tau[i] + pil_forces.Tau - p.GAMMA*agents[i].omega;
   
   /* Update the agent */
   
