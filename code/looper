@@ -1,8 +1,7 @@
-<<<<<<< HEAD
-MAX = 600
-SIZE = 4
-RANGE = 20
-plot [0:RANGE][0:RANGE] "gnudat/time".i using 1:2 wi points lc 1 pt 7 ps SIZE,"gnudat/time".i using 1:2 wi points lc 0 pt 6 ps SIZE 
-pause 0.05 
+MAX = 1000
+SIZE = 1.5
+RANGE = 15
+plot [0:RANGE][0:RANGE] "data/N50_T10000/gnudat/time".i using 1:2 wi points lc 1 pt 6 ps SIZE,"data/N50_T10000/gnudat/time".i using 1:2 wi points lc 0 pt 6 ps SIZE
+pause 0.05
 i=i+1
 if (i<MAX) reread; else if (i==MAX) i=0;reread

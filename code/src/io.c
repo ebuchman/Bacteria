@@ -55,18 +55,22 @@ struct Parameters load_params(struct Parameters p)
 /***************************************************************************/
 /*
   Make directory structure
-
-  ROB: NOTE THE system() COMMAND TO EXECUTE SHELL COMMANDS FROM A C PROGRAM
-
-  e.g. 
-
-  char command[50];
-
-   strcpy( command, "ls -l" );
-   system(command);
 */
-
 void mk_dirs(char * path)
+{
+  char command[100];
+  
+  sprintf(command, "mkdir %s", path);
+  system(command);
+  
+  sprintf(command, "mkdir %s%s", path, "gnudat/");
+  system(command);  
+  
+  sprintf(command, "mkdir %s%s", path, "pydat/");
+  system(command);
+}
+
+void mk_dirs_c(char * path)
 {
   char pp[100];
   

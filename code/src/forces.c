@@ -5,6 +5,55 @@
 #include <strings.h>
 #include "bacteria.h"
 
+/******************************************************************************/
+void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p, struct pilForces pil_forces)
+{
+    double net_f, net_th;
+
+    net_th = compute_new_angle(pil_forces.Fx, pil_forces.Fy);
+    //printf("from friction: %f, %f\n", *fx, *fy);
+
+  // static: if net force is greater than friction, otherwise, forces are 0
+  //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
+
+  if (agents[i].vx == 0 && agents[i].vy == 0)
+  {
+      net_f = sqrt(*fx*(*fx) + *fy*(*fy)) - p.STATIC_FRICTION;
+      
+      if (net_f > 0)
+      {
+        *fx = *fx - p.STATIC_FRICTION*cos(net_th);
+        *fy = *fy - p.STATIC_FRICTION*sin(net_th); 
+      }
+      else
+      {
+        *fx = 0;
+        *fy = 0;
+      }
+  }
+  else
+  {
+      net_f = sqrt(*fx*(*fx) + *fy*(*fy)) - p.KINETIC_FRICTION;
+
+      if (net_f > 0)
+      {
+        *fx = *fx - p.KINETIC_FRICTION*cos(net_th);
+        *fy = *fy - p.KINETIC_FRICTION*sin(net_th); 
+      }
+      else
+      {
+        *fx = 0;
+        *fy = 0;
+      }
+      
+      // velocity dependent dissipation
+      *fx -= p.GAMMA*agents[i].vx;
+      *fy -= p.GAMMA*agents[i].vy;
+  }
+}
+
+
+
 /*****************************************************************************/
 
 void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p)
@@ -17,12 +66,15 @@ void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int 
   
   double s;
 
+  forces->Fx = 0;
+  forces->Fy = 0;
+  forces->Tau = 0;
+
   for (j = 0; j < agents[i].Npil; j++)
   {
     pil = &agents[i].pillae[j];
     
     x = pil->x_ext;
-    //printf ("%f, ", x);
     if (pil->L > 0 && x > 0)
     {
       pil->F = p.K_STIFFNESS*x;
@@ -31,24 +83,18 @@ void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int 
       this_fx = pil->F*cos(pil->th);
       this_fy = pil->F*sin(pil->th);
       this_tau = p.BALL_R*p.BACTERIA_LENGTH*(-this_fx*sin(agents[i].th) + this_fy*cos(agents[i].th));
-      
-      
-      forces->Fx += this_fx;
-      forces->Fy += this_fy;
-      forces->Tau += this_tau;
-      
-      
-      //forces->Fx[i] += this_fx;
-      //forces->Fy[i] += this_fy;
-      //forces->Tau[i] += this_tau;
-      
-      
-      
-      
-      //printf("fx, fy, tau: %f, %f, %f\n", this_fx, this_fy, this_tau);
-
     }
-  }//printf("\n");
+    else
+    {
+      this_fx = 0;
+      this_fy = 0;
+      this_tau = 0;
+    }
+      
+    forces->Fx += this_fx;
+    forces->Fy += this_fy;
+    forces->Tau += this_tau;
+  }
 
     
 }
@@ -132,4 +178,25 @@ void compute_forces(struct Parameters p, struct Forces *forces,
     }
   }
   
+}
+
+void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt)
+{
+    double dvx, dvy, domega, dx, dy, dth;
+
+    dvx = 0.5*(fx + agents[i].last_Fx)*dt;
+    dvy = 0.5*(fy + agents[i].last_Fy)*dt;
+    domega = 0.5*(tau + agents[i].last_tau)*dt;
+    
+    agents[i].vx += dvx; 
+    agents[i].vy += dvy;
+    agents[i].omega += domega;
+
+    dx = agents[i].vx*dt + 0.5*fx*dt*dt;
+    dy = agents[i].vy*dt + 0.5*fy*dt*dt;
+    dth = agents[i].omega*dt + 0.5*tau*dt*dt;
+    
+    agents[i].cm_x = agents[i].cm_x + dx;
+    agents[i].cm_y = agents[i].cm_y + dy;
+    agents[i].th = agents[i].th + dth;
 }

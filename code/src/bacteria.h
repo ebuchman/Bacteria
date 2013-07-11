@@ -74,49 +74,60 @@ struct pilForces
 };
 
 
-int signum(double num);
-
+/***********************************************************************************************
+                                        organism.c
+/***********************************************************************************************/
 double * xy_position(struct Parameters p, int ID);
-
-double compute_new_angle(double dx, double dy);
-
-double get_energy(struct Parameters p, struct Agent * agents, int norm);
-
-void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
-
-struct Parameters load_params(struct Parameters p);
-
-void evolution(struct Parameters p, long *idum, struct Forces *forces, 
-	       struct Agent *agents, char * path);
-
-void extend_pillus(struct Pillus * pi, int i, struct Agent ag, long * idum, struct Parameters p);
-
-void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p);
-
-void compute_forces(struct Parameters p, struct Forces *forces, 
-		    struct Agent *agents, double dt);
-
 void make_colony(struct Parameters p, struct Agent *agents, long *idum);
-
-void make_colony_uniform(struct Parameters p, struct Agent *agents);
-
-float ran1( long *idum);
-
+void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents);
+void extend_pillus(struct Pillus * pil, struct Agent ag, long * idum, struct Parameters p);
+void update_pilli(struct Agent * agents, int i, struct Parameters p);
 void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
 		 double r, double th, int N);
 
 
+/***********************************************************************************************
+                                        forces.c
+/***********************************************************************************************/
+void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p, struct pilForces pil_forces);
+void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p);
+void compute_forces(struct Parameters p, struct Forces *forces, 
+		    struct Agent *agents, double dt);
+void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
+
+
+/***********************************************************************************************
+                                        main.c
+/***********************************************************************************************/
 void step(struct Parameters p, long *idum, int i, struct Agent *agents, 
 	  struct Forces *Fint, double dt, int t);
 
+void evolution(struct Parameters p, long *idum, struct Forces *forces, 
+	       struct Agent *agents, char * path);
+
+/***********************************************************************************************
+                                        misc.c
+/***********************************************************************************************/
+double compute_new_angle(double dx, double dy);
 double min_sep(struct Parameters p, double a, double b);
 
+double get_energy(struct Parameters p, struct Agent * agents, int norm);
+void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
+
+
+
+/***********************************************************************************************
+                                        io.c
+/***********************************************************************************************/
+struct Parameters load_params(struct Parameters p);
 void output_clean();
-
 void mk_dirs(char * path);
-
 void data_out(struct Parameters p, struct Agent *agents, char * path);
-
 void multiple_out(struct Parameters, struct Agent *agents, int N, char * path);
-
 void itoa(int n, char *s);
+
+/***********************************************************************************************
+                                        ran1.c
+/***********************************************************************************************/
+float ran1( long *idum);
+
