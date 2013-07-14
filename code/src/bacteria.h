@@ -97,12 +97,13 @@ struct pilForces
                                         organism.c
 /***********************************************************************************************/
 double * xy_position(struct Parameters p, int ID);
+void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th);
 void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
+void compute_rod(struct Parameters p, struct Agent * agents, int i);
+
 void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents);
 void extend_pillus(struct Pillus * pil, struct Agent ag, long * idum, struct Parameters p);
 void update_pilli(struct Agent * agents, int i, struct Parameters p);
-//void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y, double r, double th, int N);
-void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
 /***********************************************************************************************
                                         forces.c

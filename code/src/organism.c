@@ -45,72 +45,77 @@ double * xy_position(struct Parameters p, int ID)
   return xy;
 }
 
-void make_agent(struct Parameters p, struct Agent * agents, int i, double x, double y)
+
+/****************************************************************/
+// Make single agent
+// This is useful if we want bacteria to be able to divide
+
+void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th)
 {
+  int j;
+    
+  agents[i].N = p.BACTERIA_LENGTH;
+  agents[i].Npil = p.NPIL;
+  agents[i].pil_span = p.PIL_SPAN;
+  agents[i].pil_len_mean = p.PIL_LEN_MEAN;
+  agents[i].pil_len_std = p.PIL_LEN_STD;
   
+  agents[i].cm_x = x;
+  agents[i].cm_y = y;
+  
+  agents[i].th = th;
+  
+  agents[i].omega = 0;
+  agents[i].vx = 0;
+  agents[i].vy = 0;
+      
+  agents[i].ball_r = p.BALL_R; // this is dumb...
+  
+  agents[i].last_Fx = 0;
+  agents[i].last_Fy = 0;
+  
+  agents[i].last_tau = 0;
+  
+  agents[i].t = 0;
+  
+  compute_rod(p, agents, i);
+  
+  if (p.GRID == 1)
+    assign_grid_boxes(p, agents, i, grid);
+      
+  for (j=0; j < agents[i].Npil; j++)
+  {
+    agents[i].pillae[j].P = p.MOTOR_POWER;
+  
+  }  
 
 }
 
 /****************************************************************/
-
+// Make colony
 void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid)
 {
-  double  x, y, th;
-  int i, j;
+  int i;
+  double x, y, th;
+  
+  if (p.UNIFORM == 0)
+  {
+    x = p.SCREEN_W*ran1(idum);
+    y = p.SCREEN_W*ran1(idum);
+    th = 2.0*M_PI*ran1(idum);
+  }
+  else
+  {
+    double * xy;
+    xy = xy_position(p, i);
+    x = xy[0];
+    y = xy[1];
+    th = M_PI/2;
+  }
   
   for (i=0; i < p.NUM_BACTERIA; i++)
   {
-
-    if (p.UNIFORM == 0)
-    {
-      x = p.SCREEN_W*ran1(idum);
-      y = p.SCREEN_W*ran1(idum);
-      th = 2.0*M_PI*ran1(idum);
-    }
-    else
-    {
-      double * xy;
-      xy = xy_position(p, i);
-      x = xy[0];
-      y = xy[1];
-      th = M_PI/2;
-    }
-    
-    agents[i].N = p.BACTERIA_LENGTH;
-    agents[i].Npil = p.NPIL;
-    agents[i].pil_span = p.PIL_SPAN;
-    agents[i].pil_len_mean = p.PIL_LEN_MEAN;
-    agents[i].pil_len_std = p.PIL_LEN_STD;
-    
-    agents[i].cm_x = x;
-    agents[i].cm_y = y;
-    
-    agents[i].th = th;
-    
-    agents[i].omega = 0;
-    agents[i].vx = 0;
-    agents[i].vy = 0;
-        
-    agents[i].ball_r = p.BALL_R; // this is dumb...
-    
-    agents[i].last_Fx = 0;
-    agents[i].last_Fy = 0;
-    
-    agents[i].last_tau = 0;
-    
-    agents[i].t = 0;
-    
-    //compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y, agents[i].ball_r, agents[i].th, agents[i].N);
-    compute_rod(p, agents, i);
-    
-    if (p.GRID == 1)
-      assign_grid_boxes(p, agents, i, grid);
-        
-    for (j=0; j < agents[i].Npil; j++)
-    {
-      agents[i].pillae[j].P = p.MOTOR_POWER;
-    
-    }
+    make_agent(p, agents, i, grid, x, y, th);
   }
 }
 
