@@ -43,7 +43,8 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.BALL_R) );
   fscanf(fp, "%s %lf", dummy, &(p.GAMMA) );
   fscanf(fp, "%s %lf", dummy, &(p.E) );
-  
+
+  fscanf(fp, "%s %d", dummy, &(p.GRID) );  
   fscanf(fp, "%s %lf", dummy, &(p.DT) );
   
   

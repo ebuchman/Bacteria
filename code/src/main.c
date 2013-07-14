@@ -49,14 +49,15 @@ int main()
     }
     
   /*Initialize grid*/
-  
-  grid = (struct Box *)malloc(sizeof(struct Box)*p.NUM_BOXES);
-  for (i=0; i<p.NUM_BOXES; i++)
+  if (p.GRID == 1)
   {
-    grid[i].occupied = 0;
-    grid[i].grid_pos = i;
+    grid = (struct Box *)malloc(sizeof(struct Box)*p.NUM_BOXES);
+    for (i=0; i<p.NUM_BOXES; i++)
+    {
+      grid[i].occupied = 0;
+      grid[i].grid_pos = i;
+    }
   }
-
   /* Initialize agents */
 
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
@@ -161,9 +162,11 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
-
-      //compute_forces(p, forces, agents, p.DT);
-      compute_forces_grid(p, forces, agents, grid, p.DT);
+      
+      if (p.GRID == 1)
+        compute_forces_grid(p, forces, agents, grid, p.DT);
+      else
+        compute_forces(p, forces, agents, p.DT);
       
       /* Evolve positions */
 
@@ -171,10 +174,9 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
       {
         step(p, idum, i, agents, forces, p.DT, t);
 
-        update_grid_position(p, i, agents, grid); //
+        if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }
-      //printf("\n\n");
 
       /* Periodically store results in files */
 

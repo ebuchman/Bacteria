@@ -97,7 +97,8 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct B
     //compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y, agents[i].ball_r, agents[i].th, agents[i].N);
     compute_rod(p, agents, i);
     
-    assign_grid_boxes(p, agents, i, grid);
+    if (p.GRID == 1)
+      assign_grid_boxes(p, agents, i, grid);
         
     for (j=0; j < agents[i].Npil; j++)
     {

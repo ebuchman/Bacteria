@@ -27,6 +27,7 @@ struct Parameters
   double GAMMA;     //friction
   double E;         //energy scale
 
+  int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother...
   double DT;
 };
 
