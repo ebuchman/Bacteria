@@ -1,6 +1,6 @@
 Parameters_for_the_program_agent.c
 
-RUN_TIME=		10000
+RUN_TIME=		50000
 SKIP=			10
 
 NUM_BACTERIA= 		30
@@ -10,13 +10,13 @@ NPIL=           8
 PIL_SPAN=       0.83
 PIL_LEN_MEAN=   2.2
 PIL_LEN_STD=    0.2
-PROB_EXTEND=	0.1
-MOTOR_POWER=	.1
+
+PROB_EXTEND=	1.
+MOTOR_POWER=	1.2
 
 K_STIFFNESS=    2.
-STATIC_FRICTION=     100.
-KINETIC_FRICTION=     90.9
-
+STATIC_FRICTION=     .8
+KINETIC_FRICTION=     .7
 
 UNIFORM=		1
 
@@ -25,4 +25,5 @@ BALL_R= 		0.2
 GAMMA= 			5.
 E=			1.0
 
-DT= 			0.01
+GRID=		       1
+DT= 			0.001

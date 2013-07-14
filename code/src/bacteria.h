@@ -4,7 +4,11 @@ struct Parameters
   int SKIP;
   int NUM_BACTERIA;
   int BACTERIA_LENGTH;
-    
+  
+  int NUM_BOXES;
+  int GRID_WIDTH; // num boxes in a row or column.  root of NUM_BOXES
+  double BOX_WIDTH;
+  
   int NPIL;
   double  PIL_SPAN;
   double PIL_LEN_MEAN;
@@ -23,6 +27,7 @@ struct Parameters
   double GAMMA;     //friction
   double E;         //energy scale
 
+  int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother...
   double DT;
 };
 
@@ -53,8 +58,22 @@ struct Agent
   double pil_span, pil_len_mean, pil_len_std;
   struct Pillus *pillae;
   
+  int * box_num; // location in the grid for each ball (single index)
+  int agent_num;
+    
     
   int t;
+};
+
+// each box in the grid has a pointer.  if there's a ball in that box, pointer points to agent and ball_num indexes ball.
+struct Box
+{
+  int grid_pos; // position in grid .. necesssary?
+  
+  int occupied;
+  
+  int agent_num;
+  int ball_num;
 };
 
 /* Convenient for returning from compute forces */
@@ -78,24 +97,30 @@ struct pilForces
                                         organism.c
 /***********************************************************************************************/
 double * xy_position(struct Parameters p, int ID);
-void make_colony(struct Parameters p, struct Agent *agents, long *idum);
+void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
 void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents);
 void extend_pillus(struct Pillus * pil, struct Agent ag, long * idum, struct Parameters p);
 void update_pilli(struct Agent * agents, int i, struct Parameters p);
-void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
-		 double r, double th, int N);
-
+//void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y, double r, double th, int N);
+void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
 /***********************************************************************************************
                                         forces.c
 /***********************************************************************************************/
 void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p, struct pilForces pil_forces);
 void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p);
-void compute_forces(struct Parameters p, struct Forces *forces, 
-		    struct Agent *agents, double dt);
+void compute_forces(struct Parameters p, struct Forces *forces, struct Agent *agents, double dt);
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
 
+/***********************************************************************************************
+                                        grid.c
+/***********************************************************************************************/
+void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agent * agents, struct Box * grid);
+void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct Box * grid);
+void update_grid_position(struct Parameters p, int i, struct Agent *agents, struct Box * grid);
 
+void compute_neighbours(struct Parameters p, int * neighbours, int grid_i);
+void compute_forces_grid(struct Parameters p, struct Forces *forces, struct Agent *agents, struct Box * grid, double dt);
 /***********************************************************************************************
                                         main.c
 /***********************************************************************************************/
@@ -103,7 +128,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
 	  struct Forces *Fint, double dt, int t);
 
 void evolution(struct Parameters p, long *idum, struct Forces *forces, 
-	       struct Agent *agents, char * path);
+	       struct Agent *agents, char * path, struct Box *grid);
 
 /***********************************************************************************************
                                         misc.c
