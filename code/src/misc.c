@@ -30,7 +30,6 @@ double compute_new_angle(double dx, double dy)
     else phi = phi;
   
   }
-
   return phi;
 
 }

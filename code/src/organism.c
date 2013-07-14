@@ -9,6 +9,7 @@
 // method to set uniform initial density
 double * xy_position(struct Parameters p, int ID)
 {
+  
   double * xy = malloc(sizeof(double)*2);
   double V, A, N, L, D, offset, wx, wy;
   int nx, ny;
@@ -46,14 +47,14 @@ double * xy_position(struct Parameters p, int ID)
 
 /****************************************************************/
 
-void make_colony(struct Parameters p, struct Agent *agents, long *idum)
+void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid)
 {
   double  x, y, th;
   int i, j;
   
   for (i=0; i < p.NUM_BACTERIA; i++)
   {
-    
+
     if (p.UNIFORM == 0)
     {
       x = p.SCREEN_W*ran1(idum);
@@ -84,7 +85,7 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
     agents[i].vx = 0;
     agents[i].vy = 0;
         
-    agents[i].ball_r = p.BALL_R;
+    agents[i].ball_r = p.BALL_R; // this is dumb...
     
     agents[i].last_Fx = 0;
     agents[i].last_Fy = 0;
@@ -93,10 +94,11 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
     
     agents[i].t = 0;
     
-    compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y,
-                agents[i].ball_r, agents[i].th, agents[i].N);
+    //compute_rod(p, agents[i].balls, agents[i].cm_x, agents[i].cm_y, agents[i].ball_r, agents[i].th, agents[i].N);
+    compute_rod(p, agents, i);
     
-    
+    assign_grid_boxes(p, agents, i, grid);
+        
     for (j=0; j < agents[i].Npil; j++)
     {
       agents[i].pillae[j].P = p.MOTOR_POWER;
@@ -110,11 +112,18 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum)
  extend an agent from his cm in direction of theta
  */
 
-void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
-                 double r, double th, int N)
+//void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y, double r, double th, int N)
+void compute_rod(struct Parameters p, struct Agent * agents, int n)
 {
-  int i;
-  double x, y;
+  int i, N;
+  double x, y, cm_x, cm_y, r, th;
+  
+  cm_x = agents[n].cm_x;
+  cm_y = agents[n].cm_y;
+  
+  th = agents[n].th;
+  r = p.BALL_R;
+  N = agents[n].N;
   
   for (i=0; i<N; i++)
   {
@@ -127,8 +136,8 @@ void compute_rod(struct Parameters p, double *balls, double cm_x, double cm_y,
     x = fabs(fmod(x + 3.0*p.SCREEN_W, p.SCREEN_W));
     y = fabs(fmod(y + 3.0*p.SCREEN_W, p.SCREEN_W));
     
-    balls[i*2] = x;
-    balls[i*2+1] = y;
+    agents[n].balls[i*2] = x;
+    agents[n].balls[i*2+1] = y;
   }
 }
 
@@ -211,7 +220,6 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
   {
     
     pil = &agents[i].pillae[j];
-    
     if (pil->L > 0)
     {
     
@@ -238,7 +246,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
 
       if (vx < 0.000001 && vy < 0.000001)
       {
-        printf("no motion\n");
+        //printf("no motion\n");
         pil->x_ext += (pil->P / p.STATIC_FRICTION)*p.DT;
       }
       
@@ -251,7 +259,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       
       if (pil->x_ext > 0.5*pil->L0) 
       { 
-        printf("snapped! x, L0: %f, %f\n\n", pil->x_ext, pil->L0);
+        //printf("snapped! x, L0: %f, %f\n\n", pil->x_ext, pil->L0);
         pil->L = 0.0; // pillus snaps     
         snapped = 1;
       }
