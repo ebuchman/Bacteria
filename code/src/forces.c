@@ -129,6 +129,7 @@ void compute_forces(struct Parameters p, struct Forces *forces,
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
+    //printf("%d \n\n", i);
     for (j = i + 1; j < p.NUM_BACTERIA; j++)
     {
       
@@ -141,12 +142,15 @@ void compute_forces(struct Parameters p, struct Forces *forces,
 		  
 		  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[j].balls[b*2 + 1]);
           
+          //printf("i, a, b: %d, %d, %d \t dx, dy: %f, %f", i, a, b, dx, dy);
+
+          
 		  r2 = dx*dx + dy*dy;
           
 		  if (r2 < pow(pow(2, 1./6)*L, 2)) //if close enough ...
           {
-            F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) -
-                                0.5*pow(L, 6)*pow(r2, -3))/r2;
+            //F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) - 0.5*pow(L, 6)*pow(r2, -3))/r2;
+            F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
             
 		    
             if (F_piece > p.BALL_R/dt) // cap it for stability ...
@@ -154,6 +158,9 @@ void compute_forces(struct Parameters p, struct Forces *forces,
             
             f_x = F_piece*dx;
             f_y = F_piece*dy;
+            
+            //printf("fx, fy: %f, %f\n", f_x, f_y);
+
             
             forces->Fx[i] += f_x;
             forces->Fy[i] += f_y;
@@ -172,6 +179,7 @@ void compute_forces(struct Parameters p, struct Forces *forces,
                                + f_x*sin(agents[j].th) )*r_cm_b;
             
           }
+          //else printf("\n");
           
         }
       }

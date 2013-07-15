@@ -172,11 +172,12 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
 
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
+        //printf("forces on %d: %f, %f\n", i, forces->Fx[i], forces->Fy[i]);
         step(p, idum, i, agents, forces, p.DT, t);
-
         if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }
+      //exit(0);
 
       /* Periodically store results in files */
 

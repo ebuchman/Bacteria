@@ -97,6 +97,8 @@ void compute_forces_grid(struct Parameters p, struct Forces *forces,
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
+      //printf("\n\n");
+
     for (a = 0; a < p.BACTERIA_LENGTH; a++)
     {
       grid_i = agents[i].box_num[a]; // grid index of the a'th ball
@@ -108,38 +110,46 @@ void compute_forces_grid(struct Parameters p, struct Forces *forces,
         this_agent = grid[this_box].agent_num;
         this_ball = grid[this_box].ball_num;
         
+        // if grid box is occupied with a different agent
         if (grid[this_box].occupied == 1 && this_agent != i)
         {
           dx = min_sep(p, agents[i].balls[a*2], agents[this_agent].balls[this_ball*2]);
 		  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[this_agent].balls[this_ball*2 + 1]);
           
+          //printf("i, a, b: %d, %d,%d \t dx, dy: %f, %f, ", i, a, this_ball, dx, dy);
+          
 		  r2 = dx*dx + dy*dy;
           
-          F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
-          
-          if (F_piece > p.BALL_R/dt) // cap it for stability ...
-            F_piece = p.BALL_R/dt; //pow(dt,2);
-          
-          f_x = F_piece*dx;
-          f_y = F_piece*dy;
-          
-          forces->Fx[i] += f_x;
-          forces->Fy[i] += f_y;
-          
-          forces->Fx[this_agent] += -f_x;
-          forces->Fy[this_agent] += -f_y;
-          
-          r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
-          r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*this_ball)*p.BALL_R);
-          
-          forces->Tau[i] += (f_y*cos(agents[i].th)
-                             - f_x*sin(agents[i].th) )*r_cm_a;
-          
-          forces->Tau[this_agent] += (-f_y*cos(agents[this_agent].th)
-                             + f_x*sin(agents[this_agent].th) )*r_cm_b;
+          if (r2 < pow(pow(2, 1./6)*L, 2)) // if close enough
+          {
+            F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
+            
+            if (F_piece > p.BALL_R/dt) // cap it for stability ...
+              F_piece = p.BALL_R/dt; //pow(dt,2);
+            
+            f_x = F_piece*dx / 2.;
+            f_y = F_piece*dy / 2.;
+            
+            //printf("fx, fy: %f, %f\n", f_x, f_y);
+            
+            forces->Fx[i] += f_x;
+            forces->Fy[i] += f_y;
+            
+            forces->Fx[this_agent] += -f_x;
+            forces->Fy[this_agent] += -f_y;
+            
+            r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
+            r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*this_ball)*p.BALL_R);
+            
+            forces->Tau[i] += ((f_y*cos(agents[i].th)
+                               - f_x*sin(agents[i].th) )*r_cm_a)/2.;
+            
+            forces->Tau[this_agent] += ((-f_y*cos(agents[this_agent].th)
+                               + f_x*sin(agents[this_agent].th) )*r_cm_b)/2.;
+          }
+          //else printf("\n");
         }
       }
-    
     }
   }
   
@@ -159,7 +169,7 @@ void update_grid_position(struct Parameters p, int i, struct Agent *agents, stru
   for (j = 0; j < p.BACTERIA_LENGTH; j++)
   {
     previous_box = agents[i].box_num[j];
-    printf("%d, (%f, %f)\n", previous_box, agents[i].balls[2*j], agents[i].balls[2*j+1]);
+    //printf("%d, (%f, %f)\n", previous_box, agents[i].balls[2*j], agents[i].balls[2*j+1]);
     assign_grid_box(p.BOX_WIDTH, p.GRID_WIDTH, i, j, agents, grid);
     
     // if agent moved boxes
@@ -170,7 +180,7 @@ void update_grid_position(struct Parameters p, int i, struct Agent *agents, stru
         grid[previous_box].occupied = 0;
     }
       
-  }printf("\n\n");
+  }//printf("\n\n");
 }
 
 /*****************************************************************************/
@@ -178,7 +188,7 @@ void update_grid_position(struct Parameters p, int i, struct Agent *agents, stru
 
 void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct Box * grid)
 {
-  printf("Box width: %f\n", p.BOX_WIDTH);
+  //printf("Box width: %f\n", p.BOX_WIDTH);
 
   // use centre of mass of balls to compute grid position
   int j; 
@@ -206,7 +216,7 @@ void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agen
   
   box = y_box*grid_width + x_box;
 
-  printf("x, y, xbox, ybox, box: %f, %f, %d, %d, %d\n", x, y, x_box, y_box, box);
+  //printf("x, y, xbox, ybox, box: %f, %f, %d, %d, %d\n", x, y, x_box, y_box, box);
 
   // agent should point to grid and grid should point to agent (really they hold indices so we don't get tied up in pointers)
   agents[i].box_num[j] = box;
