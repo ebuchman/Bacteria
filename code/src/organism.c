@@ -24,7 +24,7 @@ double * xy_position(struct Parameters p, int ID)
   D = p.BALL_R*2;
   L = D*p.BACTERIA_LENGTH;
   
-  offset = (-(L+D) + sqrt((L-D)*(L-D) + 4*A))/4.; //solution to quadratic optimization/placement problem
+  offset = (-(L+D) + sqrt((L-D)*(L-D) + 4*A))/4.; //solution to quadratic optimization/placement problem (first attempt)
   
   wx = D + 2*offset;
   wy = L + 2*offset;
