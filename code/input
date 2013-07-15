@@ -1,9 +1,9 @@
 Parameters_for_the_program_agent.c
 
-RUN_TIME=		50000
+RUN_TIME=		100
 SKIP=			10
 
-NUM_BACTERIA= 		30
+NUM_BACTERIA= 		196
 BACTERIA_LENGTH=	4
 
 NPIL=           8
@@ -20,7 +20,8 @@ KINETIC_FRICTION=     .7
 
 UNIFORM=		1
 
-SCREEN_W= 		5
+SCREEN_W= 		15
+PLACEMENT_W=	       15	
 BALL_R= 		0.2
 GAMMA= 			5.
 E=			1.0
