@@ -5,17 +5,19 @@
 #include <strings.h>
 #include "bacteria.h"
 
+
 /****************************************************************/
 // method to set uniform initial density
 double * xy_position(struct Parameters p, int ID)
 {
   
   double * xy = malloc(sizeof(double)*2);
-  double V, A, N, L, D, offset, wx, wy;
+  double V, W, A, N, L, D, offset, wx, wy;
   int nx, ny;
-  double x, y;
+  double x, y, dx, dy;
   
-  V = p.SCREEN_W*p.SCREEN_W;
+  W = p.PLACEMENT_W;
+  V = W*W;
   N = p.NUM_BACTERIA;
   A = V/N;
   
@@ -27,17 +29,34 @@ double * xy_position(struct Parameters p, int ID)
   wx = D + 2*offset;
   wy = L + 2*offset;
   
-  nx = (int) p.SCREEN_W / wx; //round up
-  ny = (int) p.SCREEN_W / wy;
+  nx = (int) W / wx;
+  ny = (int) W / wy;
   
-  if (nx*ny < N)
+  // now that we have an approximate fit, we force everything to fit and no overlaps.
+  while (nx*ny < N)
   {
-    nx+=1;
+    nx+=2;
     ny+=1;
   }
   
-  x = (ID%nx)*wx + (offset + p.BALL_R);
+  //recompute offset and everything
+  // N is effectively bigger, making A smaller - but there will probably be left over room not filled
+  N = nx*ny;
+  A = V/N;
+
+  offset = (-(L+D) + sqrt((L-D)*(L-D) + 4*A))/4.; //solution to quadratic optimization/placement problem
+  wx = D + 2*offset;
+  wy = L + 2*offset;
+  
+  x = (int) (ID%nx)*wx + (offset + p.BALL_R);
   y = (int) (ID/nx)*wy + (offset + L/2 );
+  
+  //centre
+  dx = (p.SCREEN_W - W)/2.;
+  dy = (p.SCREEN_W - W)/2.;
+  
+  x+= dx;
+  y+=dy;
   
   xy[0] = x;
   xy[1] = y;
@@ -98,23 +117,22 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct B
   int i;
   double x, y, th;
   
-  if (p.UNIFORM == 0)
-  {
-    x = p.SCREEN_W*ran1(idum);
-    y = p.SCREEN_W*ran1(idum);
-    th = 2.0*M_PI*ran1(idum);
-  }
-  else
-  {
-    double * xy;
-    xy = xy_position(p, i);
-    x = xy[0];
-    y = xy[1];
-    th = M_PI/2;
-  }
-  
   for (i=0; i < p.NUM_BACTERIA; i++)
   {
+    if (p.UNIFORM == 0)
+    {
+      x = p.SCREEN_W*ran1(idum);
+      y = p.SCREEN_W*ran1(idum);
+      th = 2.0*M_PI*ran1(idum);
+    }
+    else
+    {
+      double * xy;
+      xy = xy_position(p, i);
+      x = xy[0];
+      y = xy[1];
+      th = M_PI/2;
+    }
     make_agent(p, agents, i, grid, x, y, th);
   }
 }

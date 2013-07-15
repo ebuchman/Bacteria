@@ -40,6 +40,7 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
   
   fscanf(fp, "%s %lf", dummy, &(p.SCREEN_W) );
+  fscanf(fp, "%s %lf", dummy, &(p.PLACEMENT_W) );
   fscanf(fp, "%s %lf", dummy, &(p.BALL_R) );
   fscanf(fp, "%s %lf", dummy, &(p.GAMMA) );
   fscanf(fp, "%s %lf", dummy, &(p.E) );
@@ -54,6 +55,10 @@ struct Parameters load_params(struct Parameters p)
   
   p.NUM_BOXES = p.GRID_WIDTH*p.GRID_WIDTH;
   
+  // if uniform initial position, N must be a perfect square (very convenient...)
+  if (p.UNIFORM == 1)
+    p.NUM_BACTERIA = pow((int)sqrt(p.NUM_BACTERIA), 2);
+
   printf ("grid w, n boxes, w: %d, %d, %f\n", p.GRID_WIDTH, p.NUM_BOXES, p.SCREEN_W);
   //exit(0);
   

@@ -23,6 +23,7 @@ struct Parameters
   int UNIFORM;
   
   double SCREEN_W;
+  double PLACEMENT_W;
   double BALL_R;
   double GAMMA;     //friction
   double E;         //energy scale
