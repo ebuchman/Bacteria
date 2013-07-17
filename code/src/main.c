@@ -105,8 +105,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents,
   extend_pilli(p, idum, i, agents);
   
   compute_pilli_forces(&pil_forces, agents, i, p);
-  printf ("pfx, pfy, ptau: %f, %f, %f\n", pil_forces.Fx, pil_forces.Fy, pil_forces.Tau);
-
   
   /* Net force */
   fx = fint->Fx[i] + pil_forces.Fx;
@@ -180,7 +178,7 @@ void evolution(struct Parameters p, long *idum, struct Forces *forces,
         
       }
       //exit(0);
-      if (t == 10) exit(0);
+
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
