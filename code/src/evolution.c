@@ -20,7 +20,6 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   extend_pilli(p, idum, i, agents);
   
   compute_pilli_forces(agents, i, p);
-  printf ("pfx, pfy, ptau: %f, %f, %f\n", agents[i].pFx, agents[i].pFy, agents[i].pTau);
     
   /* Net force */
   fx = agents[i].iFx + agents[i].pFx;
