@@ -90,6 +90,10 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
       
   agents[i].ball_r = p.BALL_R; // this is dumb...
   
+  agents[i].iFx = 0;
+  agents[i].iFy = 0;
+  agents[i].iTau = 0;
+  
   agents[i].last_Fx = 0;
   agents[i].last_Fy = 0;
   

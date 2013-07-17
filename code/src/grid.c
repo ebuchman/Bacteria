@@ -62,8 +62,7 @@ void compute_neighbours(struct Parameters p, int * neighbours, int grid_i)
 // return vector of forces and vector of torques for entire colony
 // computed using the grid (N time complexity instead of N^2)
 
-void compute_forces_grid(struct Parameters p, struct Forces *forces,
-                    struct Agent *agents, struct Box * grid, double dt)
+void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid, double dt)
 {
   double L = p.BALL_R*2;
   
@@ -86,9 +85,9 @@ void compute_forces_grid(struct Parameters p, struct Forces *forces,
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
-    forces->Fx[i] = 0.0;
-    forces->Fy[i] = 0.0;
-    forces->Tau[i] = 0.0;
+    agents[i].iFx = 0.0;
+    agents[i].iFy = 0.0;
+    agents[i].iTau = 0.0;
   }
   
   /* compute the new forces using the grid */
@@ -132,19 +131,19 @@ void compute_forces_grid(struct Parameters p, struct Forces *forces,
             
             //printf("fx, fy: %f, %f\n", f_x, f_y);
             
-            forces->Fx[i] += f_x;
-            forces->Fy[i] += f_y;
+            agents[i].iFx += f_x;
+            agents[i].iFy += f_y;
             
-            forces->Fx[this_agent] += -f_x;
-            forces->Fy[this_agent] += -f_y;
+            agents[this_agent].iFx += -f_x;
+            agents[this_agent].iFy += -f_y;
             
             r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
             r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*this_ball)*p.BALL_R);
             
-            forces->Tau[i] += ((f_y*cos(agents[i].th)
+            agents[i].iTau += ((f_y*cos(agents[i].th)
                                - f_x*sin(agents[i].th) )*r_cm_a)/2.;
             
-            forces->Tau[this_agent] += ((-f_y*cos(agents[this_agent].th)
+            agents[this_agent].iTau += ((-f_y*cos(agents[this_agent].th)
                                + f_x*sin(agents[this_agent].th) )*r_cm_b)/2.;
           }
           //else printf("\n");

@@ -6,12 +6,9 @@
 #include "bacteria.h"
 
 /******************************************************************************/
-void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p, struct pilForces pil_forces)
+void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p)
 {
     double net_f, net_th;
-
-    net_th = compute_new_angle(pil_forces.Fx, pil_forces.Fy);
-    //printf("from friction: %f, %f\n", *fx, *fy);
 
   // static: if net force is greater than friction, otherwise, forces are 0
   //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
@@ -56,7 +53,7 @@ void friction(double *fx, double *fy, struct Agent * agents, int i, struct Param
 
 /*****************************************************************************/
 
-void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p)
+void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
 {
 
   double this_fx, this_fy, this_tau;
@@ -66,9 +63,9 @@ void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int 
   
   double s;
 
-  forces->Fx = 0;
-  forces->Fy = 0;
-  forces->Tau = 0;
+  agents[i].pFx = 0;
+  agents[i].pFy = 0;
+  agents[i].pTau = 0;
 
   for (j = 0; j < agents[i].Npil; j++)
   {
@@ -91,9 +88,9 @@ void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int 
       this_tau = 0;
     }
       
-    forces->Fx += this_fx;
-    forces->Fy += this_fy;
-    forces->Tau += this_tau;
+    agents[i].pFx += this_fx;
+    agents[i].pFy += this_fy;
+    agents[i].pTau += this_tau;
   }
 
     
@@ -103,7 +100,7 @@ void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int 
 
 // return vector of forces and vector of torques for entire colony
 
-void compute_forces(struct Parameters p, struct Forces *forces,
+void compute_forces(struct Parameters p,
                     struct Agent *agents, double dt)
 {
   double L = p.BALL_R*2;
@@ -117,19 +114,18 @@ void compute_forces(struct Parameters p, struct Forces *forces,
   
   
   /* zero the forces */
-  
+  // would this be better at the end of step, cut down on an extra N loop?"
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
-    forces->Fx[i] = 0.0;
-    forces->Fy[i] = 0.0;
-    forces->Tau[i] = 0.0;
+    agents[i].iFx = 0.0;
+    agents[i].iFy = 0.0;
+    agents[i].iTau = 0.0;
   }
   
   /* compute the new forces */
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
-    //printf("%d \n\n", i);
     for (j = i + 1; j < p.NUM_BACTERIA; j++)
     {
       
@@ -141,9 +137,6 @@ void compute_forces(struct Parameters p, struct Forces *forces,
 		  dx = min_sep(p, agents[i].balls[a*2], agents[j].balls[b*2]);
 		  
 		  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[j].balls[b*2 + 1]);
-          
-          //printf("i, a, b: %d, %d, %d \t dx, dy: %f, %f", i, a, b, dx, dy);
-
           
 		  r2 = dx*dx + dy*dy;
           
@@ -159,33 +152,25 @@ void compute_forces(struct Parameters p, struct Forces *forces,
             f_x = F_piece*dx;
             f_y = F_piece*dy;
             
-            //printf("fx, fy: %f, %f\n", f_x, f_y);
-
+            agents[i].iFx += f_x;
+            agents[i].iFy += f_y;
             
-            forces->Fx[i] += f_x;
-            forces->Fy[i] += f_y;
-            
-            
-            forces->Fx[j] += -f_x;
-            forces->Fy[j] += -f_y;
+            agents[j].iFx += -f_x;
+            agents[j].iFy += -f_y;
             
             r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
             r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*b)*p.BALL_R);
             
-            forces->Tau[i] += (f_y*cos(agents[i].th)
+            agents[i].iTau += (f_y*cos(agents[i].th)
                                - f_x*sin(agents[i].th) )*r_cm_a;
             
-            forces->Tau[j] += (-f_y*cos(agents[j].th)
+            agents[j].iTau += (-f_y*cos(agents[j].th)
                                + f_x*sin(agents[j].th) )*r_cm_b;
-            
           }
-          //else printf("\n");
-          
         }
       }
     }
   }
-  
 }
 
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt)

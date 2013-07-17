@@ -61,6 +61,10 @@ struct Agent
   
   int * box_num; // location in the grid for each ball (single index)
   int agent_num;
+  
+  double iFx, iFy, iTau; // interaction forces
+  double pFx, pFy, pTau; // pilli forces
+  double fFx, fFy, fTau; // friction forces
     
     
   int t;
@@ -75,22 +79,6 @@ struct Box
   
   int agent_num;
   int ball_num;
-};
-
-/* Convenient for returning from compute forces */
-
-struct Forces
-{
-  double *Fx;
-  double *Fy;
-  double *Tau;
-};
-
-struct pilForces
-{
-  double Fx;
-  double Fy;
-  double Tau;
 };
 
 
@@ -109,9 +97,9 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p);
 /***********************************************************************************************
                                         forces.c
 /***********************************************************************************************/
-void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p, struct pilForces pil_forces);
-void compute_pilli_forces(struct pilForces * forces, struct Agent * agents, int i, struct Parameters p);
-void compute_forces(struct Parameters p, struct Forces *forces, struct Agent *agents, double dt);
+void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p);
+void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
+void compute_forces(struct Parameters p, struct Agent *agents, double dt);
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
 
 /***********************************************************************************************
@@ -122,14 +110,13 @@ void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct
 void update_grid_position(struct Parameters p, int i, struct Agent *agents, struct Box * grid);
 
 void compute_neighbours(struct Parameters p, int * neighbours, int grid_i);
-void compute_forces_grid(struct Parameters p, struct Forces *forces, struct Agent *agents, struct Box * grid, double dt);
+void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid, double dt);
 /***********************************************************************************************
                                         main.c
 /***********************************************************************************************/
-void step(struct Parameters p, long *idum, int i, struct Agent *agents, 
-	  struct Forces *Fint, double dt, int t);
+void step(struct Parameters p, long *idum, int i, struct Agent *agents, double dt, int t);
 
-void evolution(struct Parameters p, long *idum, struct Forces *forces, 
+void evolution(struct Parameters p, long *idum, 
 	       struct Agent *agents, char * path, struct Box *grid);
 
 /***********************************************************************************************
