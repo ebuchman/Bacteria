@@ -20,17 +20,17 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   extend_pilli(p, idum, i, agents);
   
   compute_pilli_forces(agents, i, p);
+
+  friction(agents, i, p);
+
     
   /* Net force */
-  fx = agents[i].iFx + agents[i].pFx;
-  fy = agents[i].iFy + agents[i].pFy;
+  fx = agents[i].iFx + agents[i].pFx + agents[i].fFx;
+  fy = agents[i].iFy + agents[i].pFy + agents[i].fFy;
 
   /* Net torque, without friction, for now */
   tau = agents[i].iTau + agents[i].pTau - p.GAMMA*agents[i].omega;
       
-  // FRICTION 
-  friction(&fx, &fy, agents, i, p);
-  
   //VERLET
   verlet(fx, fy, tau, agents, i, dt);
   
@@ -38,8 +38,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   update_pilli(agents, i, p);
   
   
-  //printf("xext, L0, L, before: %f, %f, %f\n", agents[0].pillae[0].x_ext, agents[0].pillae[0].L0, agents[0].pillae[0].L);
-  //printf("time: %d\n", t);
+
   
   //pbc
   /* ROB: You could write a subroutine to implement pbc (and use this 

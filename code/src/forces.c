@@ -6,48 +6,50 @@
 #include "bacteria.h"
 
 /******************************************************************************/
-void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p)
+void friction(struct Agent * agents, int i, struct Parameters p)
 {
-    double net_f, net_th, f;
+  double net_f, net_fx, net_fy;
+  double fFx, fFy;
+  double v, vx, vy;
+  double epsilon = 1.0E-12;
+  
+  vx = agents[i].vx;
+  vy = agents[i].vy;
+  v = sqrt(vx*vx + vy*vy);
+  
+  net_fx = agents[i].iFx + agents[i].pFx;
+  net_fy = agents[i].iFy + agents[i].pFy;
+  net_f = sqrt(net_fx*net_fx + net_fy*net_fy);
 
   // static: if net force is greater than friction, otherwise, forces are 0
   //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
 
-  f = sqrt(*fx*(*fx) + *fy*(*fy));
-  if (agents[i].vx == 0 && agents[i].vy == 0)
-  {
-      net_f = f - p.STATIC_FRICTION;
-      
-      if (net_f > 0)
+  if (fabs(v) < epsilon)
+  {      
+      if (net_f < p.STATIC_FRICTION)
       {
-        *fx = *fx - p.STATIC_FRICTION*(*fx)/f;
-        *fy = *fy - p.STATIC_FRICTION*(*fy)/f; 
+        fFx = - net_fx;
+        fFy = - net_fy;
       }
       else
       {
-        *fx = 0;
-        *fy = 0;
+        fFx = - p.STATIC_FRICTION*net_fx/net_f;
+        fFy = - p.STATIC_FRICTION*net_fy/net_f;
       }
   }
   else
   {
-      net_f = f - p.KINETIC_FRICTION;
-
-      if (net_f > 0)
-      {
-        *fx = *fx - p.KINETIC_FRICTION*(*fx)/f;
-        *fy = *fy - p.KINETIC_FRICTION*(*fy)/f; 
-      }
-      else
-      {
-        *fx = 0;
-        *fy = 0;
-      }
+      fFx = - p.KINETIC_FRICTION*vx/v;
+      fFy = - p.KINETIC_FRICTION*vy/v;
       
-      // velocity dependent dissipation
-      *fx -= p.GAMMA*agents[i].vx;
-      *fy -= p.GAMMA*agents[i].vy;
+      /* velocity dependent friction */
+      fFx -= p.GAMMA*vx;
+      fFy -= p.GAMMA*vy;
   }
+  
+  agents[i].fFx = fFx;
+  agents[i].fFy = fFy;
+  /* We should calculate a frictional drag on the rotation */
 }
 
 

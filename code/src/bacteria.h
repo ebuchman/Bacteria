@@ -97,7 +97,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p);
 /***********************************************************************************************
                                         forces.c
 /***********************************************************************************************/
-void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p);
+void friction(struct Agent * agents, int i, struct Parameters p);
 void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
 void compute_forces(struct Parameters p, struct Agent *agents, double dt);
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
