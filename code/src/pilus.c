@@ -103,6 +103,8 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
   double vx, vy;
   struct Pillus * pil;
   int j;
+  
+  double eps = 1.0E-12;
 
   rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
   rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
@@ -139,10 +141,13 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       vx = fabs(agents[i].vx);
       vy = fabs(agents[i].vy);
       //printf("vx and vy: %f, %f\n", vx, vy);
-      if (vx < 0.000001 && vy < 0.000001)
+      if (vx < eps && vy < eps)
       {
         printf("no motion\n");
-        pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
+        if (pil-> T < eps)
+          pil->s += 0.1;
+        else
+          pil->s += (pil->P / pil->T)*p.DT;
       }
 
       pil->th = compute_new_angle(dxp, dyp);
@@ -150,16 +155,15 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       int snapped;
       
       
-      if (pil->s > 0.5*pil->L) 
+      if (pil->s > 0.3*pil->L) 
       { 
         //printf("snapped! x, L0: %f, %f\n\n", pil->s, pil->L0);
         pil->L = 0.0; // pillus snaps     
         snapped = 1;
       }
       
-      if (pil->L <= 0.000000001)
+      if (pil->L <= eps)
       {
-        if (snapped != 1) {printf("a pillus retracted completely\n"); }//exit(0);}
         pil->L = 0.0;
         pil->s = 0.0;
         pil->T = 0.0;   
