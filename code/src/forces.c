@@ -8,19 +8,20 @@
 /******************************************************************************/
 void friction(double *fx, double *fy, struct Agent * agents, int i, struct Parameters p)
 {
-    double net_f, net_th;
+    double net_f, net_th, f;
 
   // static: if net force is greater than friction, otherwise, forces are 0
   //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
 
+  f = sqrt(*fx*(*fx) + *fy*(*fy));
   if (agents[i].vx == 0 && agents[i].vy == 0)
   {
-      net_f = sqrt(*fx*(*fx) + *fy*(*fy)) - p.STATIC_FRICTION;
+      net_f = f - p.STATIC_FRICTION;
       
       if (net_f > 0)
       {
-        *fx = *fx - p.STATIC_FRICTION*cos(net_th);
-        *fy = *fy - p.STATIC_FRICTION*sin(net_th); 
+        *fx = *fx - p.STATIC_FRICTION*(*fx)/f;
+        *fy = *fy - p.STATIC_FRICTION*(*fy)/f; 
       }
       else
       {
@@ -30,12 +31,12 @@ void friction(double *fx, double *fy, struct Agent * agents, int i, struct Param
   }
   else
   {
-      net_f = sqrt(*fx*(*fx) + *fy*(*fy)) - p.KINETIC_FRICTION;
+      net_f = f - p.KINETIC_FRICTION;
 
       if (net_f > 0)
       {
-        *fx = *fx - p.KINETIC_FRICTION*cos(net_th);
-        *fy = *fy - p.KINETIC_FRICTION*sin(net_th); 
+        *fx = *fx - p.KINETIC_FRICTION*(*fx)/f;
+        *fy = *fy - p.KINETIC_FRICTION*(*fy)/f; 
       }
       else
       {

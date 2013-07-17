@@ -91,7 +91,7 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
         if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }
-      if (t == 1) exit(0);
+
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
