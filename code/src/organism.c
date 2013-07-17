@@ -173,10 +173,8 @@ void compute_rod(struct Parameters p, struct Agent * agents, int n)
     x = cm_x - (N - 1 - 2*i)*r*cos(th);
     y = cm_y - (N - 1 - 2*i)*r*sin(th);
     
-    // pbc
-    
-    x = fabs(fmod(x + 3.0*p.SCREEN_W, p.SCREEN_W));
-    y = fabs(fmod(y + 3.0*p.SCREEN_W, p.SCREEN_W));
+    x = pbc(p, x);
+    y = pbc(p, y);
     
     agents[n].balls[i*2] = x;
     agents[n].balls[i*2+1] = y;
@@ -214,13 +212,9 @@ void extend_pillus(struct Pillus * pil, struct Agent ag, long *idum, struct Para
   pil->x = ag.cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag.th) + dx;
   pil->y = ag.cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag.th) + dy;
 
-    
-  // pbc
-  pil->x = fmod(pil->x, p.SCREEN_W);
-  pil->y = fmod(pil->y, p.SCREEN_W);
-  
-  //printf("LO: %f, th: %f, x:, %f, y: %f\n", pil[i].L, pil[i].th, pil[i].x, pil[i].y);
-  
+  pil->x = pbc(p, pil->x);
+  pil->y = pbc(p, pil->y);
+
 }
 
 void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents)

@@ -57,6 +57,41 @@ double min_sep(struct Parameters p, double a, double b)
 }
 
 /*****************************************************************************/
+//PBC
+
+double pbc(struct Parameters p, double x)
+{
+  while (x<0.0)
+    {
+      x += p.SCREEN_W;
+    }
+     
+  while (x >= p.SCREEN_W)
+    {
+      x -= p.SCREEN_W;
+    }
+
+  return x;
+}
+
+double pbc_th(double th)
+{
+  double pi2 = 2.0*M_PI;
+
+  while (th<0.0)
+    {
+      th += pi2;
+    }
+     
+  while (th >= pi2)
+    {
+      th -= pi2;
+    }
+
+  return th;
+}
+
+/*****************************************************************************/
 
 double get_energy(struct Parameters p, struct Agent * agents, int norm)
 {

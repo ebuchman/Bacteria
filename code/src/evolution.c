@@ -41,13 +41,9 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
 
   
   //pbc
-  /* ROB: You could write a subroutine to implement pbc (and use this 
-     all over the place)
-  */
-  agents[i].cm_x = fabs(fmod(agents[i].cm_x + 3.0*p.SCREEN_W, p.SCREEN_W));
-  agents[i].cm_y = fabs(fmod(agents[i].cm_y + 3.0*p.SCREEN_W, p.SCREEN_W));
-  agents[i].th = fabs(fmod(agents[i].th + 6.0*M_PI, 2.0*M_PI));
-
+  agents[i].cm_x = pbc(p, agents[i].cm_x);
+  agents[i].cm_y = pbc(p, agents[i].cm_y);
+  agents[i].th = pbc_th(agents[i].th);
 
   compute_rod(p, agents, i); //agents[i].balls, agents[i].cm_x, agents[i].cm_y, agents[i].ball_r, agents[i].th, agents[i].N);
 

@@ -124,6 +124,8 @@ void evolution(struct Parameters p, long *idum,
 /***********************************************************************************************/
 double compute_new_angle(double dx, double dy);
 double min_sep(struct Parameters p, double a, double b);
+double pbc(struct Parameters p, double x);
+double pbc_th(double th);
 
 double get_energy(struct Parameters p, struct Agent * agents, int norm);
 void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
