@@ -42,8 +42,9 @@ int main()
       grid[i].grid_pos = i;
     }
   }
+  
   /* Initialize agents */
-
+  
   agents = (struct Agent *)malloc(sizeof(struct Agent)*p.NUM_BACTERIA);
 
   // malloc for grid pointers, balls xy's, and pillae
@@ -55,7 +56,6 @@ int main()
     }    
 
   /* Initialize colony variables */
-  // zero forces in here
   make_colony(p, agents, idum, grid); 
 
   /*** RUN SIMULATION ***/

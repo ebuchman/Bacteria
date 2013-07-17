@@ -100,12 +100,10 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
 
 // return vector of forces and vector of torques for entire colony
 
-void compute_forces(struct Parameters p,
-                    struct Agent *agents, double dt)
+void compute_forces(struct Parameters p, struct Agent *agents, double dt)
 {
   double L = p.BALL_R*2;
-  
-  
+
   int i, j, a, b; // iterators
   
   double dx, dy, r2;

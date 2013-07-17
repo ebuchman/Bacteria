@@ -16,7 +16,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
 
   double fx, fy, tau;
   double vx, vy;
-    
+  
   extend_pilli(p, idum, i, agents);
   
   compute_pilli_forces(agents, i, p);
@@ -72,7 +72,6 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
 
   count = 0;
 
-
   while (t <= p.RUN_TIME)
     {
       /* Compute forces */
@@ -81,17 +80,16 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
         compute_forces_grid(p, agents, grid, p.DT);
       else
         compute_forces(p, agents, p.DT);
+//      printf("forces on %d: %f, %f\n", i, agents[0].iFx, agents[0].iFy);
       
       /* Evolve positions */
 
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
-        //printf("forces on %d: %f, %f\n", i, forces->Fx[i], forces->Fy[i]);
         step(p, idum, i, agents, p.DT, t);
         if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }
-      //exit(0);
 
       /* Periodically store results in files */
 
