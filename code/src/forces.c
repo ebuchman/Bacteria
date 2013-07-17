@@ -92,8 +92,6 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
     agents[i].pFy += this_fy;
     agents[i].pTau += this_tau;
   }
-
-    
 }
 
 /*****************************************************************************/

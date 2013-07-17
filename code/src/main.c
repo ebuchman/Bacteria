@@ -59,7 +59,7 @@ int main()
   make_colony(p, agents, idum, grid); 
 
   /*** RUN SIMULATION ***/
-
+  printf("evolution\n");
   evolution(p, idum, agents, path, grid);
 
   printf("# toodles!\n");

@@ -93,6 +93,14 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
   agents[i].iFx = 0;
   agents[i].iFy = 0;
   agents[i].iTau = 0;
+
+  agents[i].pFx = 0;
+  agents[i].pFy = 0;
+  agents[i].pTau = 0;
+  
+  agents[i].fFx = 0;
+  agents[i].fFy = 0;
+  agents[i].fTau = 0;
   
   agents[i].last_Fx = 0;
   agents[i].last_Fy = 0;

@@ -20,6 +20,7 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   extend_pilli(p, idum, i, agents);
   
   compute_pilli_forces(agents, i, p);
+  printf ("pfx, pfy, ptau: %f, %f, %f\n", agents[i].pFx, agents[i].pFy, agents[i].pTau);
     
   /* Net force */
   fx = agents[i].iFx + agents[i].pFx;
@@ -90,7 +91,7 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
         if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }
-
+      if (t == 1) exit(0);
       /* Periodically store results in files */
 
       if (t%p.SKIP == 0) 
