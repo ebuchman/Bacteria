@@ -34,8 +34,8 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
   
     if (L > 0 && s > 0)
     {
-	  T = wlc(s, L, p.XI);
-      printf("i, j, T: %d, %d, %f\n", i, j, T);
+	  T = p.K_STIFFNESS*s;//wlc(s, L, p.XI);
+      //printf("i, j, T: %d, %d, %f\n", i, j, T);
       agents[i].pillae[j].T = T;
       
       fx += T*cos(th);
