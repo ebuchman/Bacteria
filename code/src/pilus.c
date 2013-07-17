@@ -41,11 +41,10 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
       fx += T*cos(th);
       fy += T*sin(th);
     }
-          
-    agents[i].pFx = fx;
-    agents[i].pFy = fy;
-    agents[i].pTau = p.BALL_R*p.BACTERIA_LENGTH*(-fx*sin(agents[i].th) + fy*cos(agents[i].th));
   }
+  agents[i].pFx = fx;
+  agents[i].pFy = fy;
+  agents[i].pTau = p.BALL_R*p.BACTERIA_LENGTH*(-fx*sin(agents[i].th) + fy*cos(agents[i].th));
 }
 
 /*****************************************************************************/
