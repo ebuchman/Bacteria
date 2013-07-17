@@ -9,10 +9,8 @@
 // methods
 
 double wlc(double s, double L, double xi);
-void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
+//  void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
 void update_pilli(struct Agent * agents, int i, struct Parameters p);
-void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents);
-void extend_pillus(struct Pillus * pil, struct Agent ag, long *idum, struct Parameters p);
 
 /*****************************************************************************/
 
@@ -27,16 +25,17 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
 
   fx = 0; fy = 0;
 
-  for (j = 0; j < agents[i].Npil; j++)
+  for (j = 0; j < p.NPIL; j++)
   {
     s = agents[i].pillae[j].s;
     L = agents[i].pillae[j].L;
     th = agents[i].pillae[j].th;
+    //printf("i, j, T, L, s: %d, %d, %f, %f, %f\n", i, j, T, L, s);
   
     if (L > 0 && s > 0)
     {
 	  T = wlc(s, L, p.XI);
-      
+      printf("i, j, T: %d, %d, %f\n", i, j, T);
       agents[i].pillae[j].T = T;
       
       fx += T*cos(th);
@@ -51,55 +50,44 @@ void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
 
 /*****************************************************************************/
 
-void extend_pillus(struct Pillus * pil, struct Agent ag, long *idum, struct Parameters p)
+void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double th0, double cmx, double cmy)
 {
+  int n;
   double r, t, dx, dy;
-  double th_from_r, th;
+  double th;
   
-  
-  //uniform centred at mean with length 2*std
-  pil->L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
-  pil->L = pil->L0;
-  pil->s = 0;
-  
-  //uniform around 0 with length pil_span
-  th_from_r = ran1(idum)*ag.pil_span - ag.pil_span/2; //angle from radius of agent
-  th = ag.th + th_from_r;  //angle in xy
+  double eps = 1.0E-12;
 
-  if (th < 0) th = 2*M_PI + th;
-  else if (th > 2*M_PI) th = th - 2*M_PI;
-  
-  pil->th = th;
-    
-        
-  // anchor (x,y) : cm + to_end_of_rod + pilus extension  
-  dx = pil->L*cos(th);
-  dy = pil->L*sin(th);
-  
-  pil->x = ag.cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(ag.th) + dx;
-  pil->y = ag.cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(ag.th) + dy;
-
-  pil->x = pbc(p, pil->x);
-  pil->y = pbc(p, pil->y);
-
-}
-
-/*****************************************************************************/
-
-void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents)
-{
-  int j;
-
-  for (j = 0; j < agents[i].Npil; j++)
+  for (n = 0; n < p.NPIL; n++)
   {
-    if (agents[i].pillae[j].L <= 0.00000001)
+    //printf("L: %f\n", pil[n].L);
+    if (pil[n].L < eps)
     {
 
       if (ran1(idum) < p.PROB_EXTEND)
       {
+        //uniform centred at mean with length 2*std
+        pil[n].L0 = p.PIL_LEN_MEAN + (ran1(idum)*2*p.PIL_LEN_SD - p.PIL_LEN_SD);
+        pil[n].L = pil[n].L0;
+        pil[n].s = 0;
         
-        extend_pillus(&agents[i].pillae[j], agents[i], idum, p);
+        //uniform around 0 with length pil_span
+        th = th0 + 0.5*(2.0*ran1(idum)*p.PIL_SPAN - p.PIL_SPAN);
+        th = pbc_th(th);
+        
+        pil[n].th = th;
+              
+        // anchor (x,y) : cm + to_end_of_rod + pilus extension  
+        dx = pil[n].L*cos(th);
+        dy = pil[n].L*sin(th);
+        
+        pil[n].x = cmx + p.BALL_R*p.BACTERIA_LENGTH*cos(th0) + dx;
+        pil[n].y = cmy + p.BALL_R*p.BACTERIA_LENGTH*sin(th0) + dy;
 
+        pil[n].x = pbc(p, pil[n].x);
+        pil[n].y = pbc(p, pil[n].y);
+        
+        pil[n].P = p.MOTOR_POWER;
       }
     }
   }
@@ -150,21 +138,19 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
 
       vx = fabs(agents[i].vx);
       vy = fabs(agents[i].vy);
-
+      //printf("vx and vy: %f, %f\n", vx, vy);
       if (vx < 0.000001 && vy < 0.000001)
       {
-        //printf("no motion\n");
+        printf("no motion\n");
         pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
       }
-      
 
       pil->th = compute_new_angle(dxp, dyp);
-      
       
       int snapped;
       
       
-      if (pil->s > 0.5*pil->L0) 
+      if (pil->s > 0.5*pil->L) 
       { 
         //printf("snapped! x, L0: %f, %f\n\n", pil->s, pil->L0);
         pil->L = 0.0; // pillus snaps     

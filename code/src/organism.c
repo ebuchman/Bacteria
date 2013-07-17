@@ -69,15 +69,12 @@ double * xy_position(struct Parameters p, int ID)
 // Make single agent
 // This is useful if we want bacteria to be able to divide
 
-void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th)
+void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th, long *idum)
 {
   int j;
     
   agents[i].N = p.BACTERIA_LENGTH;
   agents[i].Npil = p.NPIL;
-  agents[i].pil_span = p.PIL_SPAN;
-  agents[i].pil_len_mean = p.PIL_LEN_MEAN;
-  agents[i].pil_len_std = p.PIL_LEN_STD;
   
   agents[i].cm_x = x;
   agents[i].cm_y = y;
@@ -87,9 +84,7 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
   agents[i].omega = 0;
   agents[i].vx = 0;
   agents[i].vy = 0;
-      
-  agents[i].ball_r = p.BALL_R; // this is dumb...
-  
+        
   agents[i].iFx = 0;
   agents[i].iFy = 0;
   agents[i].iTau = 0;
@@ -113,13 +108,7 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
   
   if (p.GRID == 1)
     assign_grid_boxes(p, agents, i, grid);
-      
-  for (j=0; j < agents[i].Npil; j++)
-  {
-    agents[i].pillae[j].P = p.MOTOR_POWER;
   
-  }  
-
 }
 
 /****************************************************************/
@@ -145,7 +134,7 @@ void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct B
       y = xy[1];
       th = M_PI/2;
     }
-    make_agent(p, agents, i, grid, x, y, th);
+    make_agent(p, agents, i, grid, x, y, th, idum);
   }
 }
 

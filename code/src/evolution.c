@@ -17,8 +17,10 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   double fx, fy, tau;
   double vx, vy;
   
-  extend_pilli(p, idum, i, agents);
+  extend_pilli(p, idum, agents[i].pillae, agents[i].th, agents[i].cm_x, agents[i].cm_y);
   
+  int j;
+
   compute_pilli_forces(agents, i, p);
 
   friction(agents, i, p);

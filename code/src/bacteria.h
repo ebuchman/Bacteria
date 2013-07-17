@@ -12,7 +12,7 @@ struct Parameters
   int NPIL;
   double  PIL_SPAN;
   double PIL_LEN_MEAN;
-  double PIL_LEN_STD;
+  double PIL_LEN_SD;
   double PROB_EXTEND;
   double MOTOR_POWER;
 
@@ -88,12 +88,11 @@ struct Box
                                         organism.c
 /***********************************************************************************************/
 double * xy_position(struct Parameters p, int ID);
-void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th);
+void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th, long *idum);
 void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
 void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
-void extend_pilli (struct Parameters p, long *idum, int i, struct Agent *agents);
-void extend_pillus(struct Pillus * pil, struct Agent ag, long * idum, struct Parameters p);
+void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double th0, double cmx, double cmy);
 void update_pilli(struct Agent * agents, int i, struct Parameters p);
 
 /***********************************************************************************************
