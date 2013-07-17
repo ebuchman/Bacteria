@@ -6,7 +6,7 @@ struct Parameters
   int BACTERIA_LENGTH;
   
   int NUM_BOXES;
-  int GRID_WIDTH; // num boxes in a row or column.  root of NUM_BOXES
+  int GRID_WIDTH; // num boxes in a row or column.
   double BOX_WIDTH;
   
   int NPIL;
@@ -22,6 +22,8 @@ struct Parameters
   
   int UNIFORM;
   
+  double XI; 
+  
   double SCREEN_W;
   double PLACEMENT_W;
   double BALL_R;
@@ -34,8 +36,8 @@ struct Parameters
 
 struct Pillus
 {
-  //initial length, length, force, angle, motor power
-  double L0, L, F, th, P;
+  //initial length, length, Tension, angle, motor power
+  double L0, L, T, th, P;
   
   double s; // spring extension
   

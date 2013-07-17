@@ -55,13 +55,8 @@ struct Parameters load_params(struct Parameters p)
   
   p.NUM_BOXES = p.GRID_WIDTH*p.GRID_WIDTH;
   
-  /* if uniform initial position, N must be a perfect square (very convenient...)
-  if (p.UNIFORM == 1)
-    p.NUM_BACTERIA = pow((int)sqrt(p.NUM_BACTERIA), 2);
-  */
-  printf ("grid w, n boxes, w: %d, %d, %f\n", p.GRID_WIDTH, p.NUM_BOXES, p.SCREEN_W);
-  //exit(0);
-  
+  p.XI = 0.1;
+
   fclose(fp);
   
   return p;

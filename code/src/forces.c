@@ -52,51 +52,6 @@ void friction(struct Agent * agents, int i, struct Parameters p)
   /* We should calculate a frictional drag on the rotation */
 }
 
-
-
-/*****************************************************************************/
-
-void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
-{
-
-  double this_fx, this_fy, this_tau;
-  double x;
-  int j;
-  struct Pillus * pil;
-  
-  double s;
-
-  agents[i].pFx = 0;
-  agents[i].pFy = 0;
-  agents[i].pTau = 0;
-
-  for (j = 0; j < agents[i].Npil; j++)
-  {
-    pil = &agents[i].pillae[j];
-    
-    x = pil->s;
-    if (pil->L > 0 && x > 0)
-    {
-      pil->F = p.K_STIFFNESS*x;
-        
-            
-      this_fx = pil->F*cos(pil->th);
-      this_fy = pil->F*sin(pil->th);
-      this_tau = p.BALL_R*p.BACTERIA_LENGTH*(-this_fx*sin(agents[i].th) + this_fy*cos(agents[i].th));
-    }
-    else
-    {
-      this_fx = 0;
-      this_fy = 0;
-      this_tau = 0;
-    }
-      
-    agents[i].pFx += this_fx;
-    agents[i].pFy += this_fy;
-    agents[i].pTau += this_tau;
-  }
-}
-
 /*****************************************************************************/
 
 // return vector of forces and vector of torques for entire colony
