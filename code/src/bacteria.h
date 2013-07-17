@@ -37,7 +37,7 @@ struct Pillus
   //initial length, length, force, angle, motor power
   double L0, L, F, th, P;
   
-  double x_ext; // spring extension
+  double s; // spring extension
   
   double x, y; //position of anchor
 

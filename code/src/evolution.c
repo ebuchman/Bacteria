@@ -121,3 +121,24 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
       
     }
 }
+
+void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt)
+{
+    double dvx, dvy, domega, dx, dy, dth;
+
+    dvx = 0.5*(fx + agents[i].last_Fx)*dt;
+    dvy = 0.5*(fy + agents[i].last_Fy)*dt;
+    domega = 0.5*(tau + agents[i].last_tau)*dt;
+    
+    agents[i].vx += dvx; 
+    agents[i].vy += dvy;
+    agents[i].omega += domega;
+
+    dx = agents[i].vx*dt + 0.5*fx*dt*dt;
+    dy = agents[i].vy*dt + 0.5*fy*dt*dt;
+    dth = agents[i].omega*dt + 0.5*tau*dt*dt;
+    
+    agents[i].cm_x = agents[i].cm_x + dx;
+    agents[i].cm_y = agents[i].cm_y + dy;
+    agents[i].th = agents[i].th + dth;
+}

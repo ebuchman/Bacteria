@@ -195,7 +195,7 @@ void extend_pillus(struct Pillus * pil, struct Agent ag, long *idum, struct Para
   //uniform centred at mean with length 2*std
   pil->L0 = ran1(idum)*2*ag.pil_len_std + (ag.pil_len_mean - ag.pil_len_std);
   pil->L = pil->L0;
-  pil->x_ext = 0;
+  pil->s = 0;
   
   //uniform around 0 with length pil_span
   th_from_r = ran1(idum)*ag.pil_span - ag.pil_span/2; //angle from radius of agent
@@ -274,7 +274,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       
       if (R >= L)
       {
-        pil->x_ext += R - L; //extend sping
+        pil->s += R - L; //extend sping
       }
       else //if (R < L)
       {
@@ -289,7 +289,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       if (vx < 0.000001 && vy < 0.000001)
       {
         //printf("no motion\n");
-        pil->x_ext += (pil->P / p.STATIC_FRICTION)*p.DT;
+        pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
       }
       
 
@@ -299,9 +299,9 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       int snapped;
       
       
-      if (pil->x_ext > 0.5*pil->L0) 
+      if (pil->s > 0.5*pil->L0) 
       { 
-        //printf("snapped! x, L0: %f, %f\n\n", pil->x_ext, pil->L0);
+        //printf("snapped! x, L0: %f, %f\n\n", pil->s, pil->L0);
         pil->L = 0.0; // pillus snaps     
         snapped = 1;
       }
@@ -310,7 +310,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       {
         if (snapped != 1) {printf("a pillus retracted completely\n"); }//exit(0);}
         pil->L = 0.0;
-        pil->x_ext = 0.0;
+        pil->s = 0.0;
         pil->F = 0.0;   
       }
 
