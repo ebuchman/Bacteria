@@ -49,7 +49,6 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %d", dummy, &(p.ATTACH) );  
   fscanf(fp, "%s %lf", dummy, &(p.DT) );
   
-  
   p.BOX_WIDTH = sqrt(2)*p.BALL_R;
   p.GRID_WIDTH = (int) p.SCREEN_W / p.BOX_WIDTH; // the diag of a box is 2*r
   p.SCREEN_W = p.GRID_WIDTH * p.BOX_WIDTH; // readjust screen_w so integer num of boxes (GRID_WIDTH) makes sense

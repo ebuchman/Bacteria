@@ -18,44 +18,24 @@ void step(struct Parameters p, long *idum, int i, struct Box *grid, struct Agent
   double vx, vy;
   
   extend_pilli(p, idum, grid, agents, i, agents[i].pillae, agents[i].th, agents[i].cm_x, agents[i].cm_y);
-  
-  int j;
 
   friction(agents, i, p);
 
-    
   /* Net force */
   fx = agents[i].iFx + agents[i].pFx + agents[i].fFx;
   fy = agents[i].iFy + agents[i].pFy + agents[i].fFy;
     
   /* Net torque, without friction, for now */
   tau = agents[i].iTau + agents[i].pTau - p.GAMMA*agents[i].omega;
-      
-  /* cap for stability
-  if (fabs(fx) > p.BALL_R / p.DT)
-    fx = p.BALL_R/p.DT;
-  
-  if (fabs(fy) > p.BALL_R / p.DT)
-    fy = p.BALL_R/p.DT;
-      
-  if (fabs(tau) > p.BALL_R / p.DT)
-    tau = p.BALL_R/p.DT;*/
-  
-  
-  
+
   //VERLET
   verlet(fx, fy, tau, agents, i, dt);
   
   /* Update the pilli */
   update_pilli(agents, i, p);
   
-  
-
-  
   //pbc
-  agents[i].cm_x = pbc(p, agents[i].cm_x);
-  agents[i].cm_y = pbc(p, agents[i].cm_y);
-  agents[i].th = pbc_th(agents[i].th);
+  pbc_position(agents, i, p);
 
   compute_rod(p, agents, i); //agents[i].balls, agents[i].cm_x, agents[i].cm_y, agents[i].ball_r, agents[i].th, agents[i].N);
 
@@ -84,9 +64,9 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
       /* Compute forces */
       
       if (p.GRID == 1)
-        compute_forces_grid(p, agents, grid, p.DT);
+        compute_forces_grid(p, agents, grid);
       else
-        compute_forces(p, agents, p.DT);
+        compute_forces(p, agents);
 
       compute_pilli_forces(agents, p);
 

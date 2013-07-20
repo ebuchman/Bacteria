@@ -32,6 +32,7 @@ struct Parameters
 
   int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother...
   int ATTACH;
+  
   double DT;
 };
 
@@ -105,7 +106,8 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p);
 /***********************************************************************************************/
 void friction(struct Agent * agents, int i, struct Parameters p);
 void compute_pilli_forces(struct Agent * agents, struct Parameters p);
-void compute_forces(struct Parameters p, struct Agent *agents, double dt);
+void compute_forces(struct Parameters p, struct Agent *agents);
+void force_core(struct Agent *agents, int i, int j, int a, int b, struct Parameters p);
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
 
 /***********************************************************************************************
@@ -116,7 +118,7 @@ void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct
 void update_grid_position(struct Parameters p, int i, struct Agent *agents, struct Box * grid);
 
 void compute_neighbours(struct Parameters p, int * neighbours, int grid_i);
-void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid, double dt);
+void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid);
 /***********************************************************************************************
                                         main.c
 /***********************************************************************************************/

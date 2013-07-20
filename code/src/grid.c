@@ -107,11 +107,9 @@ void compute_neighbours48(struct Parameters p, int * neighbours, int grid_i)
 // return vector of forces and vector of torques for entire colony
 // computed using the grid (N time complexity instead of N^2)
 
-void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid, double dt)
-{
-  double L = p.BALL_R*2;
-  
-  
+void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid)
+{  
+
   int i, j, a; // iterators. i for agent, j for neighbour, a for ball
   
   int grid_i; //grid index of agent from main loop
@@ -120,12 +118,7 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
   int * grid_neighbours; // array of indices for neighbour boxes
   
   grid_neighbours = (int *)malloc(sizeof(int)*48);
-  
-  double dx, dy, r2;
-  double F_piece, f_x, f_y;
-  double r_cm_a, r_cm_b; //cm displacement's of balls
-  
-  
+
   /* zero the forces */
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
@@ -141,14 +134,12 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
   
   for (i = 0; i < p.NUM_BACTERIA; i++)
   {
-      //printf("\n\n");
-
     for (a = 0; a < p.BACTERIA_LENGTH; a++)
     {
       grid_i = agents[i].box_num[a]; // grid index of the a'th ball
-      compute_neighbours24(p, grid_neighbours, grid_i);
+      compute_neighbours48(p, grid_neighbours, grid_i);
 
-      for (j = 0; j < 24; j ++)
+      for (j = 0; j < 48; j ++)
       {
         this_box = grid_neighbours[j];
         this_agent = grid[this_box].agent_num;
@@ -157,52 +148,11 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
         // if grid box is occupied with a different agent
         if (grid[this_box].occupied == 1 && this_agent != i)
         {
-          dx = min_sep(p, agents[i].balls[a*2], agents[this_agent].balls[this_ball*2]);
-		  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[this_agent].balls[this_ball*2 + 1]);
-          
-          //printf("i, a, b: %d, %d,%d \t dx, dy: %f, %f, ", i, a, this_ball, dx, dy);
-          
-		  r2 = dx*dx + dy*dy;
-          
-          //printf("occupied\t");
-          if (r2 < 10.0) //r2 < pow(pow(2, 1./6)*L, 2)) // if close enough
-          {
-            //printf("close enough\n");
-            //F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) - 0.5*pow(L, 6)*pow(r2, -3))/r2;
-            //F_piece = (48*p.E)*(pow(p.BALL_R, 12)*pow(r2, -7));
-            F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
-
-            
-            //printf("f: %f\n", F_piece);
-            if (F_piece > p.E*p.BALL_R/dt) // cap it for stability ...
-              F_piece = p.E*p.BALL_R/dt ; //pow(dt,2);
-            
-            f_x = F_piece*dx / 2.;
-            f_y = F_piece*dy / 2.;
-            
-            //printf("fx, fy: %f, %f\n", f_x, f_y);
-            
-            agents[i].iFx += f_x;
-            agents[i].iFy += f_y;
-            
-            agents[this_agent].iFx += -f_x;
-            agents[this_agent].iFy += -f_y;
-            
-            r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
-            r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*this_ball)*p.BALL_R);
-            
-            agents[i].iTau += ((f_y*cos(agents[i].th)
-                               - f_x*sin(agents[i].th) )*r_cm_a)/2.;
-            
-            agents[this_agent].iTau += ((-f_y*cos(agents[this_agent].th)
-                               + f_x*sin(agents[this_agent].th) )*r_cm_b)/2.;
-          }
-          else printf("fuck");
+          force_core(agents, i, this_agent, a, this_ball, p);
         }
       }
     }
   }
-  
   free(grid_neighbours);
 }
 
@@ -262,8 +212,6 @@ void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agen
 
   box = box_from_xy(x, y, box_width, grid_width);
 
-  //printf("x, y, xbox, ybox, box: %f, %f, %d, %d, %d\n", x, y, x_box, y_box, box);
-
   // agent should point to grid and grid should point to agent (really they hold indices so we don't get tied up in pointers)
   agents[i].box_num[j] = box;
 
@@ -285,4 +233,3 @@ int box_from_xy(double x, double y, double box_width, double grid_width)
   
   return box;
 }
-

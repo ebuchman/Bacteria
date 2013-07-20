@@ -53,19 +53,11 @@ void friction(struct Agent * agents, int i, struct Parameters p)
 }
 
 /*****************************************************************************/
+// compute interaction forces for all agents
 
-// return vector of forces and vector of torques for entire colony
-
-void compute_forces(struct Parameters p, struct Agent *agents, double dt)
+void compute_forces(struct Parameters p, struct Agent *agents)
 {
-  double L = p.BALL_R*2;
-
   int i, j, a, b; // iterators
-  
-  double dx, dy, r2;
-  double F_piece, f_x, f_y;
-  double r_cm_a, r_cm_b; //cm displacement's of balls
-  
   
   /* zero the forces */
   // would this be better at the end of step, cut down on an extra N loop?"
@@ -87,42 +79,57 @@ void compute_forces(struct Parameters p, struct Agent *agents, double dt)
       {
         for (b = 0; b < p.BACTERIA_LENGTH; b++)
         {
-		  
-		  dx = min_sep(p, agents[i].balls[a*2], agents[j].balls[b*2]);
-		  
-		  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[j].balls[b*2 + 1]);
-          
-		  r2 = dx*dx + dy*dy;
-          
-		  if (r2 < pow(pow(2, 1./6)*L, 2)) //if close enough ...
-          {
-            //F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) - 0.5*pow(L, 6)*pow(r2, -3))/r2;
-            F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
-            
-		    
-            if (F_piece > p.BALL_R/dt) // cap it for stability ...
-              F_piece = p.BALL_R/dt;
-            
-            f_x = F_piece*dx;
-            f_y = F_piece*dy;
-            
-            agents[i].iFx += f_x;
-            agents[i].iFy += f_y;
-            
-            agents[j].iFx += -f_x;
-            agents[j].iFy += -f_y;
-            
-            r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
-            r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*b)*p.BALL_R);
-            
-            agents[i].iTau += (f_y*cos(agents[i].th)
-                               - f_x*sin(agents[i].th) )*r_cm_a;
-            
-            agents[j].iTau += (-f_y*cos(agents[j].th)
-                               + f_x*sin(agents[j].th) )*r_cm_b;
-          }
+          force_core(agents, i, j, a, b, p);
         }
       }
     }
+  }
+}
+
+/*****************************************************************************/
+// compute forces for single interaction pair
+// useful because we have two force routines, with and without the grid.  the force core is identical for both
+
+void force_core(struct Agent *agents, int i, int j, int a, int b, struct Parameters p)
+{
+  double dx, dy, r2;
+  double F_piece, f_x, f_y;
+  double r_cm_a, r_cm_b; //cm displacement's of balls
+  
+  double L = p.BALL_R*2;
+  
+  dx = min_sep(p, agents[i].balls[a*2], agents[j].balls[b*2]);
+  
+  dy = min_sep(p, agents[i].balls[a*2 + 1], agents[j].balls[b*2 + 1]);
+  
+  r2 = dx*dx + dy*dy;
+  
+  if (r2 < pow(pow(2, 1./6)*L, 2)) //if close enough ...
+  {
+    //F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) - 0.5*pow(L, 6)*pow(r2, -3))/r2; // LJ with attraction
+    F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2; // LJ with just repulsion
+    
+    if (p.GRID == 1) F_piece = F_piece / 2; // since we will be double counting
+    
+    if (F_piece > p.BALL_R/p.DT) // cap it for stability ...
+      F_piece = p.BALL_R/p.DT;
+    
+    f_x = F_piece*dx;
+    f_y = F_piece*dy;
+    
+    agents[i].iFx += f_x;
+    agents[i].iFy += f_y;
+    
+    agents[j].iFx += -f_x;
+    agents[j].iFy += -f_y;
+    
+    r_cm_a = fabs(-(p.BACTERIA_LENGTH - 1 - 2*a)*p.BALL_R);
+    r_cm_b = fabs(-(p.BACTERIA_LENGTH - 1 - 2*b)*p.BALL_R);
+    
+    agents[i].iTau += (f_y*cos(agents[i].th)
+                       - f_x*sin(agents[i].th) )*r_cm_a;
+    
+    agents[j].iTau += (-f_y*cos(agents[j].th)
+                       + f_x*sin(agents[j].th) )*r_cm_b;
   }
 }

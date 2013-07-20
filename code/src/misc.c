@@ -5,6 +5,8 @@
 #include <strings.h>
 #include "bacteria.h"
 
+void pbc_position(struct Agent * agents, int i, struct Parameters p);
+
 
 
 /*************************************************/
@@ -89,6 +91,13 @@ double pbc_th(double th)
     }
 
   return th;
+}
+
+void pbc_position(struct Agent * agents, int i, struct Parameters p)
+{
+  agents[i].cm_x = pbc(p, agents[i].cm_x);
+  agents[i].cm_y = pbc(p, agents[i].cm_y);
+  agents[i].th = pbc_th(agents[i].th);
 }
 
 /*****************************************************************************/
