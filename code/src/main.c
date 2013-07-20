@@ -28,7 +28,7 @@ int main()
   p = load_params(p);
   
   /* Build Directory Structure */
-  sprintf(path, "data/N%d_T%d/", p.NUM_BACTERIA, p.RUN_TIME);
+  sprintf(path, "data/N%d_T%d_G%d/", p.NUM_BACTERIA, p.RUN_TIME, p.GRID);
   printf("here: %s\n", path);
   mk_dirs(path); // make directories for data
     

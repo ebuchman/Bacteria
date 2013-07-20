@@ -11,17 +11,15 @@
   Stepper function 
 */
 
-void step(struct Parameters p, long *idum, int i, struct Agent *agents, double dt, int t)
+void step(struct Parameters p, long *idum, int i, struct Box *grid, struct Agent *agents, double dt, int t)
 {
 
   double fx, fy, tau;
   double vx, vy;
   
-  extend_pilli(p, idum, agents[i].pillae, agents[i].th, agents[i].cm_x, agents[i].cm_y);
+  extend_pilli(p, idum, grid, agents, i, agents[i].pillae, agents[i].th, agents[i].cm_x, agents[i].cm_y);
   
   int j;
-
-  compute_pilli_forces(agents, i, p);
 
   friction(agents, i, p);
 
@@ -29,10 +27,22 @@ void step(struct Parameters p, long *idum, int i, struct Agent *agents, double d
   /* Net force */
   fx = agents[i].iFx + agents[i].pFx + agents[i].fFx;
   fy = agents[i].iFy + agents[i].pFy + agents[i].fFy;
-
+    
   /* Net torque, without friction, for now */
   tau = agents[i].iTau + agents[i].pTau - p.GAMMA*agents[i].omega;
       
+  /* cap for stability
+  if (fabs(fx) > p.BALL_R / p.DT)
+    fx = p.BALL_R/p.DT;
+  
+  if (fabs(fy) > p.BALL_R / p.DT)
+    fy = p.BALL_R/p.DT;
+      
+  if (fabs(tau) > p.BALL_R / p.DT)
+    tau = p.BALL_R/p.DT;*/
+  
+  
+  
   //VERLET
   verlet(fx, fy, tau, agents, i, dt);
   
@@ -77,13 +87,18 @@ void evolution(struct Parameters p, long *idum, struct Agent *agents, char * pat
         compute_forces_grid(p, agents, grid, p.DT);
       else
         compute_forces(p, agents, p.DT);
+
+      compute_pilli_forces(agents, p);
+
+
 //      printf("forces on %d: %f, %f\n", i, agents[0].iFx, agents[0].iFy);
       
       /* Evolve positions */
 
       for (i = 0; i < p.NUM_BACTERIA; i++)
       {
-        step(p, idum, i, agents, p.DT, t);
+        //printf("time: %d\n", t);
+        step(p, idum, i, grid, agents, p.DT, t);
         if (p.GRID == 1) update_grid_position(p, i, agents, grid);
         
       }

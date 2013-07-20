@@ -14,42 +14,69 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p);
 
 /*****************************************************************************/
 
-void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p)
+void compute_pilli_forces(struct Agent * agents, struct Parameters p)
 {
 
-  double fx, fy;
+  double fx, fy, tau;
 
-  int j;
+  int i, j;
   
   double s, L, th, T;
 
-  fx = 0; fy = 0;
-
-  for (j = 0; j < p.NPIL; j++)
+  // zero the forces
+  for (i=0; i < p.NUM_BACTERIA; i++)
   {
-    s = agents[i].pillae[j].s;
-    L = agents[i].pillae[j].L;
-    th = agents[i].pillae[j].th;
-    //printf("i, j, T, L, s: %d, %d, %f, %f, %f\n", i, j, T, L, s);
+    agents[i].pFx = 0;
+    agents[i].pFy = 0;
+    agents[i].pTau = 0;
+  }
   
-    if (L > 0 && s > 0)
+  for (i = 0; i < p.NUM_BACTERIA; i++)
+  {
+    fx = 0; fy = 0; tau = 0;
+    for (j = 0; j < p.NPIL; j++)
     {
-	  T = p.K_STIFFNESS*s;//wlc(s, L, p.XI);
-      //printf("i, j, T: %d, %d, %f\n", i, j, T);
-      agents[i].pillae[j].T = T;
+      s = agents[i].pillae[j].s;
+      L = agents[i].pillae[j].L;
+      th = agents[i].pillae[j].th;
+      //printf("i, j, T, L, s: %d, %d, %f, %f, %f\n", i, j, T, L, s);
+    
+      if (L > 0 && s > 0)
+      {
+        //T = p.K_STIFFNESS*s;
+        T = wlc(s, L, p.XI);
+        //printf("i, j, T: %d, %d, %f\n", i, j, T);
+        agents[i].pillae[j].T = T;
+        
+        fx = T*cos(th);
+        fy = T*sin(th);
+        tau = p.BALL_R*p.BACTERIA_LENGTH*(-fx*sin(agents[i].th) + fy*cos(agents[i].th));
+      }
       
-      fx += T*cos(th);
-      fy += T*sin(th);
+      agents[i].pFx += fx;
+      agents[i].pFy += fy;
+      agents[i].pTau += tau;   
+      
+      // add forces from pilli that attach to other bacteria
+      if (p.ATTACH == 1 && agents[i].pillae[j].attached == 1)
+      {
+        int agent_num, ball_num;
+        
+        agent_num = agents[i].pillae[j].agent_num;
+        ball_num = agents[i].pillae[j].ball_num;
+        
+        agents[agent_num].pFx += -fx;
+        agents[agent_num].pFy += -fy;
+        agents[agent_num].pTau += p.BALL_R*(ball_num - (p.BACTERIA_LENGTH - 1)/2)*(fx*sin(agents[agent_num].th) - fy*cos(agents[agent_num].th)) ;
+
+      }
     }
   }
-  agents[i].pFx = fx;
-  agents[i].pFy = fy;
-  agents[i].pTau = p.BALL_R*p.BACTERIA_LENGTH*(-fx*sin(agents[i].th) + fy*cos(agents[i].th));
 }
 
 /*****************************************************************************/
 
-void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double th0, double cmx, double cmy)
+void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i, struct Pillus *pil, double th0, double cmx, double cmy)
 {
   int n;
   double r, t, dx, dy;
@@ -65,6 +92,8 @@ void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double t
 
       if (ran1(idum) < p.PROB_EXTEND)
       {
+        pil[n].P = p.MOTOR_POWER;
+
         //uniform centred at mean with length 2*std
         pil[n].L0 = p.PIL_LEN_MEAN + (ran1(idum)*2*p.PIL_LEN_SD - p.PIL_LEN_SD);
         pil[n].L = pil[n].L0;
@@ -86,11 +115,52 @@ void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double t
         pil[n].x = pbc(p, pil[n].x);
         pil[n].y = pbc(p, pil[n].y);
         
-        pil[n].P = p.MOTOR_POWER;
+        // check if pillus is anchored to another bacteria (requires grid)
+        // reset pillus anchor to centre of ball in grid box
+        if (p.GRID == 1 && p.ATTACH == 1)
+        {
+          int box, ball_num, agent_num;
+          double rod_end_x, rod_end_y;
+          double dxp, dyp;
+          
+          box = box_from_xy(pil[n].x, pil[n].y, p.BOX_WIDTH, p.GRID_WIDTH);
+          
+          if (grid[box].occupied == 1)
+          {
+            agent_num = grid[box].agent_num;
+            ball_num = grid[box].ball_num;
+            
+            //printf("attachmen!\n");
+            
+            // pillus includes agent its attached to
+            pil[n].attached = 1;
+            pil[n].agent_num = agent_num;
+            pil[n].ball_num = ball_num;
+            
+            //reset xy, length, etc. 
+            pil[n].x = agents[agent_num].balls[2*ball_num];
+            pil[n].y = agents[agent_num].balls[2*ball_num + 1];
+            
+            rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
+            rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
+            
+            rod_end_x = pbc(p, rod_end_x);
+            rod_end_y = pbc(p, rod_end_y);
+
+            dxp = min_sep(p, pil[n].x, rod_end_x);
+            dyp = min_sep(p, pil[n].y, rod_end_y);
+            
+            pil[n].L0 = sqrt(dxp*dxp + dyp*dyp);
+            pil[n].L = pil[n].L0;
+            pil[n].th = compute_new_angle(dxp, dyp);
+            
+          }
+        }
       }
     }
   }
 }
+
 
 /*****************************************************************************/
 
@@ -100,6 +170,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
   double dxp, dyp, R, L;
   double dU, dxs;
   double vx, vy;
+  double retract_v;
   struct Pillus * pil;
   int j;
   
@@ -108,25 +179,33 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
   rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
   rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
   
-  rod_end_x = fmod(rod_end_x, p.SCREEN_W);
-  rod_end_y = fmod(rod_end_y, p.SCREEN_W);
+  rod_end_x = pbc(p, rod_end_x);
+  rod_end_y = pbc(p, rod_end_y);
 
   
   for (j=0; j < agents[i].Npil; j++)
   {
     
     pil = &agents[i].pillae[j];
-    if (pil->L > 0)
-    {
     
+    if (pil->L > eps)
+    {
+      // if attached to other agent, update anchor point to new cm of other agent's ball
+      if (pil->attached == 1)
+      {
+        pil->x = agents[pil->agent_num].balls[2*pil->ball_num];
+        pil->y = agents[pil->agent_num].balls[2*pil->ball_num + 1];
+      }
+      
       dxp = min_sep(p, pil->x, rod_end_x);
       dyp = min_sep(p, pil->y, rod_end_y);
       R = sqrt(dxp*dxp + dyp*dyp);
       L = pil->L;
+      
       /* If the new position is further from the anchor point, we extend the spring;'
             If it is closer, we retract the pillus.  */
       
-      if (R >= L)
+      if (R - L > eps)
       {
         pil->s += R - L; //extend sping
       }
@@ -142,11 +221,19 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       //printf("vx and vy: %f, %f\n", vx, vy);
       if (vx < eps && vy < eps)
       {
-        printf("no motion\n");
-        if (pil-> T < eps)
-          pil->s += 0.1;
+        //printf("no motion\n");
+        
+        if (pil-> T < p.STATIC_FRICTION)
+          retract_v = pil->P/p.STATIC_FRICTION;
         else
-          pil->s += (pil->P / pil->T)*p.DT;
+          retract_v = pil->P/pil->T;
+        
+        pil->s += retract_v*p.DT;
+        
+        
+        
+        
+        //pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
       }
 
       pil->th = compute_new_angle(dxp, dyp);
@@ -154,7 +241,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       int snapped;
       
       
-      if (pil->s > 0.3*pil->L) 
+      if (pil->s > 0.8*pil->L) 
       { 
         //printf("snapped! x, L0: %f, %f\n\n", pil->s, pil->L0);
         pil->L = 0.0; // pillus snaps     
@@ -166,10 +253,13 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
         pil->L = 0.0;
         pil->s = 0.0;
         pil->T = 0.0;   
+        pil->attached = 0;
       }
-
     }
+    //  printf("T: %f\t", pil->T);
+    
   }
+  //printf("\n");
 }
 
 /*******************************************************************************/

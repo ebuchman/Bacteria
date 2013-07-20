@@ -5,9 +5,54 @@
 #include <strings.h>
 #include "bacteria.h"
 
+int box_from_xy(double x, double y, double box_width, double grid_width);
+void compute_neighbours48(struct Parameters p, int * neighbours, int grid_i);
+void compute_neighbours24(struct Parameters p, int * neighbours, int grid_i);
+
+
+// 24 neighbours (5x5 grid around centre)
+void compute_neighbours24(struct Parameters p, int * neighbours, int grid_i)
+{
+  int i;
+  int r, c, w; //row num, column num, grid width
+   
+  w = p.GRID_WIDTH;
+  c = grid_i - r*w;
+  
+  //pbc'd
+  
+  //top row
+  r = (int) (grid_i / w + 2)%w;
+  for(i = 0; i<5; i++)
+    neighbours[i] = r*w + (c + i - 2)%w;  
+    
+  //first row above centre
+  r = (int) (grid_i / w + 1)%w;
+  for(i = 0; i<5; i++)
+    neighbours[i + 5] = r*w + (c + i - 2)%w;    
+  
+  // centre
+  r = (int) grid_i / w;
+  for (i=0; i<2; i++)
+    neighbours[i + 10] = r*w + (c + i - 2)%w;
+  for (i=0; i<2; i++)
+    neighbours[i + 12] = r*w + (c + i + 1)%w;
+      
+  //first row below centre
+  r = (int) (grid_i / w - 1)%w;
+  for(i = 0; i<5; i++)
+    neighbours[i + 14] = r*w + (c + i - 2)%w ;  
+
+  //bottom row
+  r = (int) (grid_i / w - 2)%w;
+  for(i = 0; i<5; i++)
+    neighbours[i + 19] = r*w + (c + i - 2)%w; 
+
+}
+
 
 // 48 neighbours (7x7 grid around centre)
-void compute_neighbours(struct Parameters p, int * neighbours, int grid_i)
+void compute_neighbours48(struct Parameters p, int * neighbours, int grid_i)
 {
   int i;
   int r, c, w; //row num, column num, grid width
@@ -101,9 +146,9 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
     for (a = 0; a < p.BACTERIA_LENGTH; a++)
     {
       grid_i = agents[i].box_num[a]; // grid index of the a'th ball
-      compute_neighbours(p, grid_neighbours, grid_i);
+      compute_neighbours24(p, grid_neighbours, grid_i);
 
-      for (j = 0; j < 48; j ++)
+      for (j = 0; j < 24; j ++)
       {
         this_box = grid_neighbours[j];
         this_agent = grid[this_box].agent_num;
@@ -119,12 +164,18 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
           
 		  r2 = dx*dx + dy*dy;
           
-          if (r2 < pow(pow(2, 1./6)*L, 2)) // if close enough
+          //printf("occupied\t");
+          if (r2 < 10.0) //r2 < pow(pow(2, 1./6)*L, 2)) // if close enough
           {
+            //printf("close enough\n");
+            //F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6) - 0.5*pow(L, 6)*pow(r2, -3))/r2;
+            //F_piece = (48*p.E)*(pow(p.BALL_R, 12)*pow(r2, -7));
             F_piece = (48*p.E)*(pow(L, 12)*pow(r2, -6))/r2;
+
             
-            if (F_piece > p.BALL_R/dt) // cap it for stability ...
-              F_piece = p.BALL_R/dt; //pow(dt,2);
+            //printf("f: %f\n", F_piece);
+            if (F_piece > p.E*p.BALL_R/dt) // cap it for stability ...
+              F_piece = p.E*p.BALL_R/dt ; //pow(dt,2);
             
             f_x = F_piece*dx / 2.;
             f_y = F_piece*dy / 2.;
@@ -146,7 +197,7 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
             agents[this_agent].iTau += ((-f_y*cos(agents[this_agent].th)
                                + f_x*sin(agents[this_agent].th) )*r_cm_b)/2.;
           }
-          //else printf("\n");
+          else printf("fuck");
         }
       }
     }
@@ -203,17 +254,13 @@ void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct
 
 void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agent * agents, struct Box * grid)
 {
-  
+  int box;
   double x, y;
-  int x_box, y_box, box;
   
   x = agents[i].balls[2*j];   // i is the agent num
   y = agents[i].balls[2*j + 1];   // j is the ball num
 
-  x_box = (int) (x/box_width);
-  y_box = (int) (y/box_width);
-  
-  box = y_box*grid_width + x_box;
+  box = box_from_xy(x, y, box_width, grid_width);
 
   //printf("x, y, xbox, ybox, box: %f, %f, %d, %d, %d\n", x, y, x_box, y_box, box);
 
@@ -225,5 +272,17 @@ void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agen
   
   grid[box].occupied = 1;
   
+}
+
+int box_from_xy(double x, double y, double box_width, double grid_width)
+{
+  int x_box, y_box, box;
+  
+  x_box = (int) (x/box_width);
+  y_box = (int) (y/box_width);
+  
+  box = y_box*grid_width + x_box;
+  
+  return box;
 }
 

@@ -31,6 +31,7 @@ struct Parameters
   double E;         //energy scale
 
   int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother...
+  int ATTACH;
   double DT;
 };
 
@@ -42,6 +43,10 @@ struct Pillus
   double s; // spring extension
   
   double x, y; //position of anchor
+
+  int attached; // anchored to another agent?
+  int agent_num; // which agent?
+  int ball_num; // which ball?
 
 };
 
@@ -92,14 +97,14 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
 void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
 void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
-void extend_pilli (struct Parameters p, long *idum, struct Pillus *pil, double th0, double cmx, double cmy);
+void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i, struct Pillus *pil, double th0, double cmx, double cmy);
 void update_pilli(struct Agent * agents, int i, struct Parameters p);
 
 /***********************************************************************************************
                                         forces.c
 /***********************************************************************************************/
 void friction(struct Agent * agents, int i, struct Parameters p);
-void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
+void compute_pilli_forces(struct Agent * agents, struct Parameters p);
 void compute_forces(struct Parameters p, struct Agent *agents, double dt);
 void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
 
@@ -115,7 +120,7 @@ void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box *
 /***********************************************************************************************
                                         main.c
 /***********************************************************************************************/
-void step(struct Parameters p, long *idum, int i, struct Agent *agents, double dt, int t);
+void step(struct Parameters p, long *idum, int i, struct Box * grid, struct Agent *agents, double dt, int t);
 
 void evolution(struct Parameters p, long *idum, 
 	       struct Agent *agents, char * path, struct Box *grid);
