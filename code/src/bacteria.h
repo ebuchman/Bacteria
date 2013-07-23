@@ -30,7 +30,7 @@ struct Parameters
   double GAMMA;     //friction
   double E;         //energy scale
 
-  int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother...
+  int GRID;         // use grid (1) or standard MD (0).  Note Grid is nevessary for pilli to grab eachother
   int ATTACH;
   
   double DT;
@@ -98,8 +98,8 @@ void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * 
 void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
 void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
-void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i, struct Pillus *pil, double th0, double cmx, double cmy);
-void update_pilli(struct Agent * agents, int i, struct Parameters p);
+void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i);
+void update_pilli(struct Agent * agents, int i, struct Parameters p, int t);
 
 /***********************************************************************************************
                                         forces.c

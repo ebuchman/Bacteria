@@ -13,8 +13,6 @@ msd = msd_fast(trajs)**0.5
 avgV = ensemble_avg_velocity(vs)
 vc = velocity_correlation_np(trajs)
 
-
-
 plt.subplot(311)
 plt.plot(msd)
 plt.xscale('log')

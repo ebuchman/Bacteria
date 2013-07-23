@@ -17,7 +17,7 @@ void step(struct Parameters p, long *idum, int i, struct Box *grid, struct Agent
   double fx, fy, tau;
   double vx, vy;
   
-  extend_pilli(p, idum, grid, agents, i, agents[i].pillae, agents[i].th, agents[i].cm_x, agents[i].cm_y);
+  extend_pilli(p, idum, grid, agents, i);
 
   friction(agents, i, p);
 
@@ -32,7 +32,7 @@ void step(struct Parameters p, long *idum, int i, struct Box *grid, struct Agent
   verlet(fx, fy, tau, agents, i, dt);
   
   /* Update the pilli */
-  update_pilli(agents, i, p);
+  update_pilli(agents, i, p, t);
   
   //pbc
   pbc_position(agents, i, p);
@@ -42,7 +42,7 @@ void step(struct Parameters p, long *idum, int i, struct Box *grid, struct Agent
   agents[i].last_Fx = fx;
   agents[i].last_Fy = fy;
   agents[i].last_tau = tau;
-    
+      
 }
 
 

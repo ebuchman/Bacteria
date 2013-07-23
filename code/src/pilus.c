@@ -8,9 +8,10 @@
 /*****************************************************************************/
 // methods
 
-double wlc(double s, double L, double xi);
+double wlc(double s, double L, double xi, double kT);
 //  void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
-void update_pilli(struct Agent * agents, int i, struct Parameters p);
+void update_pilli(struct Agent * agents, int i, struct Parameters p, int t);
+void move_pillus_anchor(struct Agent *agents, int i, struct Pillus *pil, int pil_num, struct Parameters p);
 
 /*****************************************************************************/
 
@@ -44,7 +45,7 @@ void compute_pilli_forces(struct Agent * agents, struct Parameters p)
       if (L > 0 && s > 0)
       {
         //T = p.K_STIFFNESS*s;
-        T = wlc(s, L, p.XI);
+        T = wlc(s, L, p.XI, p.E);
         //printf("i, j, T: %d, %d, %f\n", i, j, T);
         agents[i].pillae[j].T = T;
         
@@ -76,20 +77,25 @@ void compute_pilli_forces(struct Agent * agents, struct Parameters p)
 
 /*****************************************************************************/
 
-void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i, struct Pillus *pil, double th0, double cmx, double cmy)
+void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i)
 {
   int n;
   double r, t, dx, dy;
-  double th;
+  double th, th0, cmx, cmy;
+  struct Pillus *pil;
   
   double eps = 1.0E-12;
 
+  th0 = agents[i].th;
+  cmx = agents[i].cm_x;
+  cmy = agents[i].cm_y;
+
+  pil = agents[i].pillae;
+
   for (n = 0; n < p.NPIL; n++)
   {
-    //printf("L: %f\n", pil[n].L);
     if (pil[n].L < eps)
     {
-
       if (ran1(idum) < p.PROB_EXTEND)
       {
         pil[n].P = p.MOTOR_POWER;
@@ -127,33 +133,17 @@ void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Age
           
           if (grid[box].occupied == 1)
           {
+            //printf("attachmen!\n");
+
             agent_num = grid[box].agent_num;
             ball_num = grid[box].ball_num;
-            
-            //printf("attachmen!\n");
-            
-            // pillus includes agent its attached to
+                        
             pil[n].attached = 1;
             pil[n].agent_num = agent_num;
             pil[n].ball_num = ball_num;
             
-            //reset xy, length, etc. 
-            pil[n].x = agents[agent_num].balls[2*ball_num];
-            pil[n].y = agents[agent_num].balls[2*ball_num + 1];
-            
-            rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
-            rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
-            
-            rod_end_x = pbc(p, rod_end_x);
-            rod_end_y = pbc(p, rod_end_y);
-
-            dxp = min_sep(p, pil[n].x, rod_end_x);
-            dyp = min_sep(p, pil[n].y, rod_end_y);
-            
-            pil[n].L0 = sqrt(dxp*dxp + dyp*dyp);
-            pil[n].L = pil[n].L0;
-            pil[n].th = compute_new_angle(dxp, dyp);
-            
+            //reset pillus anchor to cm of ball
+            move_pillus_anchor(agents, i, pil, n, p);
           }
         }
       }
@@ -161,10 +151,40 @@ void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Age
   }
 }
 
+/*****************************************************************************/
+// update pillus anchor to point to center of mass of ball its anchored to
+
+void move_pillus_anchor(struct Agent *agents, int i, struct Pillus *pil, int pil_num, struct Parameters p)
+{
+  int agent_num, ball_num;
+  double rod_end_x, rod_end_y;
+  double dxp, dyp;
+  
+  agent_num = pil[pil_num].agent_num;
+  ball_num = pil[pil_num].ball_num;
+  
+  pil[pil_num].x = agents[agent_num].balls[2*ball_num];
+  pil[pil_num].y = agents[agent_num].balls[2*ball_num + 1];
+  
+  // recompute length
+  rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
+  rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
+  
+  rod_end_x = pbc(p, rod_end_x);
+  rod_end_y = pbc(p, rod_end_y);
+
+  dxp = min_sep(p, pil[pil_num].x, rod_end_x);
+  dyp = min_sep(p, pil[pil_num].y, rod_end_y);
+  
+  pil[pil_num].L0 = sqrt(dxp*dxp + dyp*dyp);
+  pil[pil_num].L = pil[pil_num].L0;
+  pil[pil_num].th = compute_new_angle(dxp, dyp);
+
+}
 
 /*****************************************************************************/
 
-void update_pilli(struct Agent * agents, int i, struct Parameters p)
+void update_pilli(struct Agent * agents, int i, struct Parameters p, int t)
 {
   double rod_end_x, rod_end_y;
   double dxp, dyp, R, L;
@@ -187,9 +207,10 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
   {
     
     pil = &agents[i].pillae[j];
-    
     if (pil->L > eps)
     {
+      //printf("%f\n", agents[i].pillae[j].L);
+
       // if attached to other agent, update anchor point to new cm of other agent's ball
       if (pil->attached == 1)
       {
@@ -218,6 +239,9 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
 
       vx = fabs(agents[i].vx);
       vy = fabs(agents[i].vy);
+
+      //printf("%d L, s, T, vx, vy: %f, %f, %f, %f, %f\n", t, pil->L, pil->s, pil->T, vx, vy);
+
       //printf("vx and vy: %f, %f\n", vx, vy);
       if (vx < eps && vy < eps)
       {
@@ -229,7 +253,7 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
           retract_v = pil->P/pil->T;
         
         pil->s += retract_v*p.DT;
-        
+        //printf("%f\n", retract_v);
         
         
         
@@ -240,10 +264,12 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
       
       int snapped;
       
+      //if (t == 1000) exit(0);
       
       if (pil->s > 0.8*pil->L) 
       { 
-        //printf("snapped! x, L0: %f, %f\n\n", pil->s, pil->L0);
+        printf("snapped! x, L0: %f, %f\t %d\n\n", pil->s, pil->L0, t);
+        
         pil->L = 0.0; // pillus snaps     
         snapped = 1;
       }
@@ -264,11 +290,9 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p)
 
 /*******************************************************************************/
 
-double wlc(double s, double L, double xi)
+double wlc(double s, double L, double xi, double kT)
 {
   double f, x;
-
-  double kT = 1.0;
 
   x = s/L;
 

@@ -33,7 +33,7 @@ struct Parameters load_params(struct Parameters p)
   fscanf(fp, "%s %lf", dummy, &(p.PROB_EXTEND) );
   fscanf(fp, "%s %lf", dummy, &(p.MOTOR_POWER) );
   
-  fscanf(fp, "%s %lf", dummy, &(p.K_STIFFNESS) );
+  fscanf(fp, "%s %lf", dummy, &(p.XI) );
   fscanf(fp, "%s %lf", dummy, &(p.STATIC_FRICTION) );
   fscanf(fp, "%s %lf", dummy, &(p.KINETIC_FRICTION) );
   
@@ -55,8 +55,6 @@ struct Parameters load_params(struct Parameters p)
   
   p.NUM_BOXES = p.GRID_WIDTH*p.GRID_WIDTH;
   
-  p.XI = 1.;
-
   fclose(fp);
   
   return p;
