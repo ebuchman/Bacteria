@@ -1,3 +1,14 @@
+/* file for handling pili model
+    it is possible to run the simulation without any pili (no code from this file will run).  See comments in evolution.c
+    
+    this file contains functions for extending (initializing) pili, computing their forces, and updating them.
+    
+    the currently implemented pili model is not satisfactory and contains many bugs/unphysicalities, despite potentially providing appealing simulation results.  
+    
+    this will be fixed in the coming weeks.
+*/
+
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,11 +18,11 @@
 
 /*****************************************************************************/
 // methods
-
-double wlc(double s, double L, double xi, double kT);
-//  void compute_pilli_forces(struct Agent * agents, int i, struct Parameters p);
-void update_pilli(struct Agent * agents, int i, struct Parameters p, int t);
+void compute_pilli_forces(struct Agent * agents, struct Parameters p);
+void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i);
 void move_pillus_anchor(struct Agent *agents, int i, struct Pillus *pil, int pil_num, struct Parameters p);
+void update_pilli(struct Agent * agents, struct Parameters p, int t, long* idum, struct Box* grid);
+double wlc(double s, double L, double xi, double kT);
 
 /*****************************************************************************/
 
@@ -184,7 +195,7 @@ void move_pillus_anchor(struct Agent *agents, int i, struct Pillus *pil, int pil
 
 /*****************************************************************************/
 
-void update_pilli(struct Agent * agents, int i, struct Parameters p, int t)
+void update_pilli(struct Agent * agents, struct Parameters p, int t, long* idum, struct Box* grid)
 {
   double rod_end_x, rod_end_y;
   double dxp, dyp, R, L;
@@ -192,100 +203,101 @@ void update_pilli(struct Agent * agents, int i, struct Parameters p, int t)
   double vx, vy;
   double retract_v;
   struct Pillus * pil;
-  int j;
+  int i, j;
   
   double eps = 1.0E-12;
 
-  rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
-  rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
-  
-  rod_end_x = pbc(p, rod_end_x);
-  rod_end_y = pbc(p, rod_end_y);
-
-  
-  for (j=0; j < agents[i].Npil; j++)
+  for (i=0; i<p.NUM_BACTERIA; i++)
   {
+
+    rod_end_x = agents[i].cm_x + p.BALL_R*p.BACTERIA_LENGTH*cos(agents[i].th);
+    rod_end_y = agents[i].cm_y + p.BALL_R*p.BACTERIA_LENGTH*sin(agents[i].th);
     
-    pil = &agents[i].pillae[j];
-    if (pil->L > eps)
+    rod_end_x = pbc(p, rod_end_x);
+    rod_end_y = pbc(p, rod_end_y);
+
+    
+    for (j=0; j < agents[i].Npil; j++)
     {
-      //printf("%f\n", agents[i].pillae[j].L);
-
-      // if attached to other agent, update anchor point to new cm of other agent's ball
-      if (pil->attached == 1)
+      pil = &agents[i].pillae[j];
+      if (pil->L > eps)
       {
-        pil->x = agents[pil->agent_num].balls[2*pil->ball_num];
-        pil->y = agents[pil->agent_num].balls[2*pil->ball_num + 1];
-      }
-      
-      dxp = min_sep(p, pil->x, rod_end_x);
-      dyp = min_sep(p, pil->y, rod_end_y);
-      R = sqrt(dxp*dxp + dyp*dyp);
-      L = pil->L;
-      
-      /* If the new position is further from the anchor point, we extend the spring;'
-            If it is closer, we retract the pillus.  */
-      
-      if (R - L > eps)
-      {
-        pil->s += R - L; //extend sping
-      }
-      else //if (R < L)
-      {
-        pil->L += R - L; //retract pillus
-        //printf("\n retract, R, L, dx, dy: %f, %f, %f, %f, %f\n", pil->L, R, L, dx, dy);
+        // if attached to other agent, update anchor point to new cm of other agent's ball
+        if (pil->attached == 1)
+        {
+          pil->x = agents[pil->agent_num].balls[2*pil->ball_num];
+          pil->y = agents[pil->agent_num].balls[2*pil->ball_num + 1];
+        }
+        
+        dxp = min_sep(p, pil->x, rod_end_x);
+        dyp = min_sep(p, pil->y, rod_end_y);
+        R = sqrt(dxp*dxp + dyp*dyp);
+        L = pil->L;
+        
+        /* If the new position is further from the anchor point, we extend the spring;'
+              If it is closer, we retract the pillus.  */
+        
+        if (R - L > eps)
+        {
+          pil->s += R - L; //extend sping
+        }
+        else //if (R < L)
+        {
+          pil->L += R - L; //retract pillus
+          //printf("\n retract, R, L, dx, dy: %f, %f, %f, %f, %f\n", pil->L, R, L, dx, dy);
+        }
+        
+
+        vx = fabs(agents[i].vx);
+        vy = fabs(agents[i].vy);
+
+        //printf("%d L, s, T, vx, vy: %f, %f, %f, %f, %f\n", t, pil->L, pil->s, pil->T, vx, vy);
+
+        //printf("vx and vy: %f, %f\n", vx, vy);
+        if (vx < eps && vy < eps)
+        {
+          //printf("no motion\n");
+          
+          if (pil-> T < p.STATIC_FRICTION)
+            retract_v = pil->P/p.STATIC_FRICTION;
+          else
+            retract_v = pil->P/pil->T;
+          
+          pil->s += retract_v*p.DT;
+          
+          
+          
+          //pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
+        }
+
+        pil->th = compute_new_angle(dxp, dyp);
+        
+        int snapped;
+        
+        
+        if (pil->s > 0.8*pil->L) 
+        { 
+          //printf("snapped! x, L0: %f, %f\t %d\n\n", pil->s, pil->L0, t);
+          
+          pil->L = 0.0; // pillus snaps     
+          snapped = 1;
+        }
+        
+        if (pil->L <= eps)
+        {
+          pil->L = 0.0;
+          pil->s = 0.0;
+          pil->T = 0.0;   
+          pil->attached = 0;
+        }
       }
       
 
-      vx = fabs(agents[i].vx);
-      vy = fabs(agents[i].vy);
-
-      //printf("%d L, s, T, vx, vy: %f, %f, %f, %f, %f\n", t, pil->L, pil->s, pil->T, vx, vy);
-
-      //printf("vx and vy: %f, %f\n", vx, vy);
-      if (vx < eps && vy < eps)
-      {
-        //printf("no motion\n");
-        
-        if (pil-> T < p.STATIC_FRICTION)
-          retract_v = pil->P/p.STATIC_FRICTION;
-        else
-          retract_v = pil->P/pil->T;
-        
-        pil->s += retract_v*p.DT;
-        //printf("%f\n", retract_v);
-        
-        
-        
-        //pil->s += (pil->P / p.STATIC_FRICTION)*p.DT;
-      }
-
-      pil->th = compute_new_angle(dxp, dyp);
       
-      int snapped;
-      
-      //if (t == 1000) exit(0);
-      
-      if (pil->s > 0.8*pil->L) 
-      { 
-        printf("snapped! x, L0: %f, %f\t %d\n\n", pil->s, pil->L0, t);
-        
-        pil->L = 0.0; // pillus snaps     
-        snapped = 1;
-      }
-      
-      if (pil->L <= eps)
-      {
-        pil->L = 0.0;
-        pil->s = 0.0;
-        pil->T = 0.0;   
-        pil->attached = 0;
-      }
-    }
-    //  printf("T: %f\t", pil->T);
+    }    
+    extend_pilli(p, idum, grid, agents, i);
     
   }
-  //printf("\n");
 }
 
 /*******************************************************************************/

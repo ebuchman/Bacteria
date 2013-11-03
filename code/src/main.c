@@ -25,7 +25,7 @@ int main()
 
   /* Load Parameters */
 
-  p = load_params(p);
+  load_params(&p);
   
   /* Build Directory Structure */
   sprintf(path, "data/N%d_T%d_G%d_A%d_dt%d/", p.NUM_BACTERIA, p.RUN_TIME, p.GRID, p.ATTACH, (int)(1./p.DT));

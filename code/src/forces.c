@@ -5,51 +5,61 @@
 #include <strings.h>
 #include "bacteria.h"
 
+
+void friction(struct Agent * agents, struct Parameters p);
+void compute_forces(struct Parameters p, struct Agent *agents);
+void force_core(struct Agent *agents, int i, int j, int a, int b, struct Parameters p);
+
 /******************************************************************************/
-void friction(struct Agent * agents, int i, struct Parameters p)
+void friction(struct Agent * agents, struct Parameters p)
 {
+  int i;
+  
   double net_f, net_fx, net_fy;
   double fFx, fFy;
   double v, vx, vy;
   double epsilon = 1.0E-12;
-  
-  vx = agents[i].vx;
-  vy = agents[i].vy;
-  v = sqrt(vx*vx + vy*vy);
-  
-  net_fx = agents[i].iFx + agents[i].pFx;
-  net_fy = agents[i].iFy + agents[i].pFy;
-  net_f = sqrt(net_fx*net_fx + net_fy*net_fy);
-
-  // static: if net force is greater than friction, otherwise, forces are 0
-  //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
-
-  if (fabs(v) < epsilon)
-  {      
-      if (net_f < p.STATIC_FRICTION)
-      {
-        fFx = - net_fx;
-        fFy = - net_fy;
-      }
-      else
-      {
-        fFx = - p.STATIC_FRICTION*net_fx/net_f;
-        fFy = - p.STATIC_FRICTION*net_fy/net_f;
-      }
-  }
-  else
-  {
-      fFx = - p.KINETIC_FRICTION*vx/v;
-      fFy = - p.KINETIC_FRICTION*vy/v;
       
-      /* velocity dependent friction */
-      fFx -= p.GAMMA*vx;
-      fFy -= p.GAMMA*vy;
+  for (i=0; i < p.NUM_BACTERIA; i ++)
+  {
+    vx = agents[i].vx;
+    vy = agents[i].vy;
+    v = sqrt(vx*vx + vy*vy);
+    
+    net_fx = agents[i].iFx + agents[i].pFx;
+    net_fy = agents[i].iFy + agents[i].pFy;
+    net_f = sqrt(net_fx*net_fx + net_fy*net_fy);
+
+    // static: if net force is greater than friction, otherwise, forces are 0
+    //kinetic: if greater than friction, subtract friction.  otherwise, set to zero.  add velocity-dependent friction
+
+    if (fabs(v) < epsilon)
+    {      
+        if (net_f < p.STATIC_FRICTION)
+        {
+          fFx = - net_fx;
+          fFy = - net_fy;
+        }
+        else
+        {
+          fFx = - p.STATIC_FRICTION*net_fx/net_f;
+          fFy = - p.STATIC_FRICTION*net_fy/net_f;
+        }
+    }
+    else
+    {
+        fFx = - p.KINETIC_FRICTION*vx/v;
+        fFy = - p.KINETIC_FRICTION*vy/v;
+        
+        /* velocity dependent friction */
+        fFx -= p.GAMMA*vx;
+        fFy -= p.GAMMA*vy;
+    }
+    
+    agents[i].fFx = fFx;
+    agents[i].fFy = fFy;
+    /* We should calculate a frictional drag on the rotation */
   }
-  
-  agents[i].fFx = fFx;
-  agents[i].fFy = fFy;
-  /* We should calculate a frictional drag on the rotation */
 }
 
 /*****************************************************************************/
@@ -74,7 +84,6 @@ void compute_forces(struct Parameters p, struct Agent *agents)
   {
     for (j = i + 1; j < p.NUM_BACTERIA; j++)
     {
-      
 	  for (a = 0; a < p.BACTERIA_LENGTH; a ++)
       {
         for (b = 0; b < p.BACTERIA_LENGTH; b++)

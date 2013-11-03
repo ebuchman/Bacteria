@@ -5,9 +5,11 @@
 #include <strings.h>
 #include "bacteria.h"
 
-void pbc_position(struct Agent * agents, int i, struct Parameters p);
 
 
+
+double get_energy(struct Parameters p, struct Agent * agents, int norm);
+void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
 
 /*************************************************/
 // recenters atan to give [0, 2*PI]

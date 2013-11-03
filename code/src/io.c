@@ -7,9 +7,17 @@
 
 #include "bacteria.h"
 
+
+void load_params(struct Parameters* p);
+void output_clean();
+void mk_dirs(char * path);
+void data_out(struct Parameters p, struct Agent *agents, char * path);
+void multiple_out(struct Parameters, struct Agent *agents, int N, char * path);
+void itoa(int n, char *s);
+
 /*****************************************************************************/
 
-struct Parameters load_params(struct Parameters p)
+void load_params(struct Parameters* p)
 {
   FILE *fp;
   
@@ -21,44 +29,45 @@ struct Parameters load_params(struct Parameters p)
   
   fscanf(fp,"%s", dummy);
   
-  fscanf(fp, "%s %d", dummy, &(p.RUN_TIME) );
-  fscanf(fp, "%s %d", dummy, &(p.SKIP) );
-  fscanf(fp, "%s %d", dummy, &(p.NUM_BACTERIA) );
-  fscanf(fp, "%s %d", dummy, &(p.BACTERIA_LENGTH) );
+  printf("ok!\n");
   
-  fscanf(fp, "%s %d", dummy, &(p.NPIL) );
-  fscanf(fp, "%s %lf", dummy, &(p.PIL_SPAN) );
-  fscanf(fp, "%s %lf", dummy, &(p.PIL_LEN_MEAN) );
-  fscanf(fp, "%s %lf", dummy, &(p.PIL_LEN_SD) );
-  fscanf(fp, "%s %lf", dummy, &(p.PROB_EXTEND) );
-  fscanf(fp, "%s %lf", dummy, &(p.MOTOR_POWER) );
+  fscanf(fp, "%s %d", dummy, &(p->RUN_TIME) );
+  fscanf(fp, "%s %d", dummy, &(p->SKIP) );
+  fscanf(fp, "%s %d", dummy, &(p->NUM_BACTERIA) );
+  fscanf(fp, "%s %d", dummy, &(p->BACTERIA_LENGTH) );
   
-  fscanf(fp, "%s %lf", dummy, &(p.XI) );
-  fscanf(fp, "%s %lf", dummy, &(p.STATIC_FRICTION) );
-  fscanf(fp, "%s %lf", dummy, &(p.KINETIC_FRICTION) );
+  fscanf(fp, "%s %d", dummy, &(p->NPIL) );
+  fscanf(fp, "%s %lf", dummy, &(p->PIL_SPAN) );
+  fscanf(fp, "%s %lf", dummy, &(p->PIL_LEN_MEAN) );
+  fscanf(fp, "%s %lf", dummy, &(p->PIL_LEN_SD) );
+  fscanf(fp, "%s %lf", dummy, &(p->PROB_EXTEND) );
+  fscanf(fp, "%s %lf", dummy, &(p->MOTOR_POWER) );
   
-  fscanf(fp, "%s %d", dummy, &(p.UNIFORM) );
+  fscanf(fp, "%s %lf", dummy, &(p->XI) );
+  fscanf(fp, "%s %lf", dummy, &(p->STATIC_FRICTION) );
+  fscanf(fp, "%s %lf", dummy, &(p->KINETIC_FRICTION) );
   
-  fscanf(fp, "%s %lf", dummy, &(p.SCREEN_W) );
-  fscanf(fp, "%s %lf", dummy, &(p.PLACEMENT_W) );
-  fscanf(fp, "%s %lf", dummy, &(p.BALL_R) );
-  fscanf(fp, "%s %lf", dummy, &(p.GAMMA) );
-  fscanf(fp, "%s %lf", dummy, &(p.E) );
+  fscanf(fp, "%s %d", dummy, &(p->UNIFORM) );
+  
+  fscanf(fp, "%s %lf", dummy, &(p->SCREEN_W) );
+  fscanf(fp, "%s %lf", dummy, &(p->PLACEMENT_W) );
+  fscanf(fp, "%s %lf", dummy, &(p->BALL_R) );
+  fscanf(fp, "%s %lf", dummy, &(p->GAMMA) );
+  fscanf(fp, "%s %lf", dummy, &(p->E) );
 
-  fscanf(fp, "%s %d", dummy, &(p.GRID) );  
-  fscanf(fp, "%s %d", dummy, &(p.ATTACH) );  
-  fscanf(fp, "%s %lf", dummy, &(p.DT) );
+  fscanf(fp, "%s %d", dummy, &(p->GRID) );  
+  fscanf(fp, "%s %d", dummy, &(p->ATTACH) );  
+  fscanf(fp, "%s %lf", dummy, &(p->DT) );
   
-  p.BOX_WIDTH = sqrt(2)*p.BALL_R;
-  p.GRID_WIDTH = (int) p.SCREEN_W / p.BOX_WIDTH; // the diag of a box is 2*r
-  p.SCREEN_W = p.GRID_WIDTH * p.BOX_WIDTH; // readjust screen_w so integer num of boxes (GRID_WIDTH) makes sense
+  p->BOX_WIDTH = sqrt(2)*p->BALL_R;
+  p->GRID_WIDTH = (int) p->SCREEN_W / p->BOX_WIDTH; // the diag of a box is 2*r
+  p->SCREEN_W = p->GRID_WIDTH * p->BOX_WIDTH; // readjust screen_w so integer num of boxes (GRID_WIDTH) makes sense
   
-  p.NUM_BOXES = p.GRID_WIDTH*p.GRID_WIDTH;
+  p->NUM_BOXES = p->GRID_WIDTH*p->GRID_WIDTH;
   
   fclose(fp);
   
-  return p;
-  
+  //printf("%d, %d, %d\n", p->NUM_BOXES, p->GRID, p->ATTACH);
 }
 
 /***************************************************************************/

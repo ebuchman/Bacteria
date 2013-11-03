@@ -4,7 +4,7 @@ RANGE = 15
 
 j = i
 
-PATH = "data/N100_T10000_G1_dt100/gnudat/time".j
+PATH = "data/N100_T1000_G1_A0_dt100/gnudat/time".j
 
 plot [0:RANGE][0:RANGE] PATH using 1:2 wi points lc 1 pt 6 ps SIZE, PATH using 1:2 wi points lc 0 pt 6 ps SIZE
 pause 0.05

@@ -5,6 +5,10 @@
 #include <strings.h>
 #include "bacteria.h"
 
+double * xy_position(struct Parameters p, int ID);
+void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th, long *idum);
+void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
+void compute_rod(struct Parameters p, struct Agent * agents, int i);
 
 /****************************************************************/
 // method to set uniform initial density

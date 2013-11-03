@@ -5,10 +5,13 @@
 #include <strings.h>
 #include "bacteria.h"
 
-int box_from_xy(double x, double y, double box_width, double grid_width);
-void compute_neighbours48(struct Parameters p, int * neighbours, int grid_i);
-void compute_neighbours24(struct Parameters p, int * neighbours, int grid_i);
 
+void compute_neighbours24(struct Parameters p, int * neighbours, int grid_i);
+void compute_neighbours48(struct Parameters p, int * neighbours, int grid_i);
+void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid);
+void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct Box * grid);
+void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agent * agents, struct Box * grid);
+int box_from_xy(double x, double y, double box_width, double grid_width);
 
 // 24 neighbours (5x5 grid around centre)
 void compute_neighbours24(struct Parameters p, int * neighbours, int grid_i)

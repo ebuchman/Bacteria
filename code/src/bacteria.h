@@ -9,6 +9,8 @@ struct Parameters
   int GRID_WIDTH; // num boxes in a row or column.
   double BOX_WIDTH;
   
+  double SELF_FORCE;
+  
   int NPIL;
   double  PIL_SPAN;
   double PIL_LEN_MEAN;
@@ -90,68 +92,14 @@ struct Box
 };
 
 
-/***********************************************************************************************
-                                        organism.c
-/***********************************************************************************************/
-double * xy_position(struct Parameters p, int ID);
-void make_agent(struct Parameters p, struct Agent * agents, int i, struct Box * grid, double x, double y, double th, long *idum);
-void make_colony(struct Parameters p, struct Agent *agents, long *idum, struct Box *grid);
-void compute_rod(struct Parameters p, struct Agent * agents, int i);
+/* if i move this to misc.c, code will seg fault ... */
+double pbc(struct Parameters p, double x);
 
-void extend_pilli (struct Parameters p, long *idum, struct Box *grid, struct Agent *agents, int i);
-void update_pilli(struct Agent * agents, int i, struct Parameters p, int t);
-
-/***********************************************************************************************
-                                        forces.c
-/***********************************************************************************************/
-void friction(struct Agent * agents, int i, struct Parameters p);
-void compute_pilli_forces(struct Agent * agents, struct Parameters p);
-void compute_forces(struct Parameters p, struct Agent *agents);
-void force_core(struct Agent *agents, int i, int j, int a, int b, struct Parameters p);
-void verlet(double fx, double fy, double tau, struct Agent * agents, int i, double dt);
-
-/***********************************************************************************************
-                                        grid.c
-/***********************************************************************************************/
-void assign_grid_box(double box_width, int grid_width, int i, int j, struct Agent * agents, struct Box * grid);
-void assign_grid_boxes(struct Parameters p, struct Agent * agents, int i, struct Box * grid);
-void update_grid_position(struct Parameters p, int i, struct Agent *agents, struct Box * grid);
-
-void compute_neighbours(struct Parameters p, int * neighbours, int grid_i);
-void compute_forces_grid(struct Parameters p, struct Agent *agents, struct Box * grid);
-/***********************************************************************************************
-                                        main.c
-/***********************************************************************************************/
-void step(struct Parameters p, long *idum, int i, struct Box * grid, struct Agent *agents, double dt, int t);
-
-void evolution(struct Parameters p, long *idum, 
-	       struct Agent *agents, char * path, struct Box *grid);
-
-/***********************************************************************************************
-                                        misc.c
-/***********************************************************************************************/
+/* if i move any of these, code will run weirdly ... */
 double compute_new_angle(double dx, double dy);
 double min_sep(struct Parameters p, double a, double b);
-double pbc(struct Parameters p, double x);
 double pbc_th(double th);
+void pbc_position(struct Agent * agents, int i, struct Parameters p);
 
-double get_energy(struct Parameters p, struct Agent * agents, int norm);
-void normalize_velocities(struct Parameters p, struct Agent * agents, double T, double V);
-
-
-
-/***********************************************************************************************
-                                        io.c
-/***********************************************************************************************/
-struct Parameters load_params(struct Parameters p);
-void output_clean();
-void mk_dirs(char * path);
-void data_out(struct Parameters p, struct Agent *agents, char * path);
-void multiple_out(struct Parameters, struct Agent *agents, int N, char * path);
-void itoa(int n, char *s);
-
-/***********************************************************************************************
-                                        ran1.c
-/***********************************************************************************************/
 float ran1( long *idum);
 
