@@ -3,6 +3,8 @@ Bacteria
 
 Simulation of pillae driven bacterial motility on a surface, written in C.
 
+Research done with [John Dutcher](http://www.physics.uoguelph.ca/dutcherlab/dutcher.shtml) and [Rob Wickham](http://www.physics.uoguelph.ca/~rwickham/research/) at the University of Guelph.
+
 old_code contains previous versions, and some python (why you so slow, python?!)
 
 
